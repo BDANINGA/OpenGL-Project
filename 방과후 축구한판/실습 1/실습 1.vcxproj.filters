@@ -24,7 +24,7 @@
     <ClCompile Include="default.txt">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="실습19+20+26.cpp">
+    <ClCompile Include="방과후 축구한판.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>
