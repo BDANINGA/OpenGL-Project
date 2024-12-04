@@ -11,18 +11,19 @@
 #include <gl/glm/glm.hpp>
 #include <gl/glm/ext.hpp>
 #include <gl/glm/gtc/matrix_transform.hpp>
+#include <fstream>
+#include <sstream>
+#include <string>
 #include <vector>
+#include <tuple>
+#include <algorithm>
 #include <iomanip>
 #define M_PI 3.14159265358979323846
 
+// 함수 선언
 void MakeSphere(GLfloat arr[][3], GLfloat normal[][3], GLfloat cx, GLfloat cy, GLfloat cz, GLfloat radius, int first_index);
-struct Rectangle {
-    float left;
-    float right;
-    float top;
-    float bottom;
-};
 
+// 함수들
 void read_newline(char* str) {
     char* pos;
     if ((pos = strchr(str, '\n')) != NULL)
@@ -53,14 +54,6 @@ char* filetobuf(const char* file)
     fclose(fptr); // Close the file
     buf[length] = 0; // Null terminator
     return buf; // Return the buffer 
-}
-bool isCollision(const struct Rectangle& rect1, const struct Rectangle& rect2) {
-    // 충돌이 없는 경우를 먼저 체크
-    if (rect1.right < rect2.left || rect1.left > rect2.right ||
-        rect1.bottom > rect2.top || rect1.top < rect2.bottom) {
-        return false; // 충돌 없음
-    }
-    return true; // 충돌 발생
 }
 
 void MakeShape(GLfloat arr[][3], GLfloat normal[][3], GLfloat x1, GLfloat y1, GLfloat z1, GLfloat x2, GLfloat y2, GLfloat z2, int first_index, std::string shape) {
@@ -386,4 +379,134 @@ void MakeSphere(GLfloat arr[][3], GLfloat normal[][3], GLfloat cx, GLfloat cy, G
         delete[] vertices[i];
     }
     delete[] vertices;
+}
+
+
+// obj 데이터 파싱
+struct Vertex {
+    float x, y, z;
+};
+struct TextureCoord {
+    float u, v;
+};
+struct Normal {
+    float nx, ny, nz;
+};
+struct Face {
+    std::vector<std::tuple<int, int, int>> vertices; // (vertex_index, tex_coord_index, normal_index)
+};
+struct ObjData {
+    std::vector<Vertex> vertices;
+    std::vector<TextureCoord> texCoords;
+    std::vector<Normal> normals;
+    std::vector<Face> faces;
+};
+ObjData parseObj(const std::string& filePath) {
+    ObjData data;
+    std::ifstream file(filePath);
+
+    if (!file.is_open()) {
+        std::cerr << "Failed to open file: " << filePath << std::endl;
+        return data;
+    }
+
+    std::string line;
+    while (std::getline(file, line)) {
+        std::istringstream iss(line);
+        std::string prefix;
+        iss >> prefix;
+
+        if (prefix == "v") { // Vertex
+            Vertex vertex;
+            iss >> vertex.x >> vertex.y >> vertex.z;
+            data.vertices.push_back(vertex);
+        }
+        else if (prefix == "vt") { // Texture Coordinate
+            TextureCoord texCoord;
+            iss >> texCoord.u >> texCoord.v;
+            data.texCoords.push_back(texCoord);
+        }
+        else if (prefix == "vn") { // Normal
+            Normal normal;
+            iss >> normal.nx >> normal.ny >> normal.nz;
+            data.normals.push_back(normal);
+        }
+        else if (prefix == "f") { // Face
+            Face face;
+            std::string vertexData;
+            while (iss >> vertexData) {
+                int vIdx = 0, tIdx = 0, nIdx = 0;
+                std::replace(vertexData.begin(), vertexData.end(), '/', ' ');
+                std::istringstream vertexStream(vertexData);
+                vertexStream >> vIdx;
+                if (vertexStream.peek() == ' ') vertexStream >> tIdx;
+                if (vertexStream.peek() == ' ') vertexStream >> nIdx;
+                face.vertices.emplace_back(vIdx - 1, tIdx - 1, nIdx - 1); // Convert to 0-based index
+            }
+            data.faces.push_back(face);
+        }
+    }
+
+    file.close();
+    return data;
+}
+
+void convertToGLArrays(const ObjData& objData, std::vector<GLfloat>& vertexArray, std::vector<GLfloat>& normalArray) {
+    for (const auto& face : objData.faces) {
+        // 각 Face의 정점 정보를 삼각형 단위로 분리
+        for (size_t i = 1; i + 1 < face.vertices.size(); ++i) {
+            // 첫 번째 정점
+            int vIdx1 = std::get<0>(face.vertices[0]);
+            int nIdx1 = std::get<2>(face.vertices[0]);
+
+            // 두 번째 정점
+            int vIdx2 = std::get<0>(face.vertices[i]);
+            int nIdx2 = std::get<2>(face.vertices[i]);
+
+            // 세 번째 정점
+            int vIdx3 = std::get<0>(face.vertices[i + 1]);
+            int nIdx3 = std::get<2>(face.vertices[i + 1]);
+
+            // 정점 좌표 추가
+            vertexArray.push_back(objData.vertices[vIdx1].x);
+            vertexArray.push_back(objData.vertices[vIdx1].y);
+            vertexArray.push_back(objData.vertices[vIdx1].z);
+
+            vertexArray.push_back(objData.vertices[vIdx2].x);
+            vertexArray.push_back(objData.vertices[vIdx2].y);
+            vertexArray.push_back(objData.vertices[vIdx2].z);
+
+            vertexArray.push_back(objData.vertices[vIdx3].x);
+            vertexArray.push_back(objData.vertices[vIdx3].y);
+            vertexArray.push_back(objData.vertices[vIdx3].z);
+
+            // 법선 벡터 추가
+            if (nIdx1 >= 0) {
+                normalArray.push_back(objData.normals[nIdx1].nx);
+                normalArray.push_back(objData.normals[nIdx1].ny);
+                normalArray.push_back(objData.normals[nIdx1].nz);
+            }
+            else {
+                normalArray.insert(normalArray.end(), { 0.0f, 0.0f, 0.0f });
+            }
+
+            if (nIdx2 >= 0) {
+                normalArray.push_back(objData.normals[nIdx2].nx);
+                normalArray.push_back(objData.normals[nIdx2].ny);
+                normalArray.push_back(objData.normals[nIdx2].nz);
+            }
+            else {
+                normalArray.insert(normalArray.end(), { 0.0f, 0.0f, 0.0f });
+            }
+
+            if (nIdx3 >= 0) {
+                normalArray.push_back(objData.normals[nIdx3].nx);
+                normalArray.push_back(objData.normals[nIdx3].ny);
+                normalArray.push_back(objData.normals[nIdx3].nz);
+            }
+            else {
+                normalArray.insert(normalArray.end(), { 0.0f, 0.0f, 0.0f });
+            }
+        }
+    }
 }
