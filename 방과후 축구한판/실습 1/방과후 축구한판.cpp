@@ -168,6 +168,9 @@ GLvoid Reshape(int w, int h) //--- 콜백 함수: 다시 그리기 콜백 함수
 GLvoid Keyboard(unsigned char key, int x, int y)
 {
 	switch (key) {
+	case 'y':
+		cameraPos.y += 0.1f;
+		break;
 	case 'q':
 		glutLeaveMainLoop();
 		break;
