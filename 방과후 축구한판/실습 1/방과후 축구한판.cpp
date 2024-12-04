@@ -47,15 +47,15 @@ extern GLuint fragmentShader; //--- 프래그먼트 세이더 객체
 
 //------------------------------------------------------------------------------------------------------
 
-GLfloat colors[10000][3]{};
+GLfloat colors[400000][3]{};
 std::vector<GLfloat> vertexArray;
 std::vector<GLfloat> normalArray;
 ObjData data{};
-glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 5.0f);
+glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 4.0f);
 glm::vec3 cameraDirection = glm::vec3(0.0f, 0.0f, 0.0f);
 glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
-glm::vec3 light = glm::vec3(0.0f, 0.0f, 0.0f);
-glm::vec3 lightp = glm::vec3(2.0f, 2.0f, 0.0f);
+glm::vec3 light = glm::vec3(1.0f, 1.0f, 1.0f);
+glm::vec3 lightp = glm::vec3(0.0f, 2.0f, 3.0f);
 
 void InitBuffer()
 {
@@ -95,9 +95,9 @@ void InitBuffer()
 }
 
 int once = 0;
-GLfloat red = 1.0f;
-GLfloat blue = 1.0f;
-GLfloat green = 1.0f;
+GLfloat red = 0.0f;
+GLfloat blue = 0.0f;
+GLfloat green = 0.0f;
 bool left_button = 0;
 GLfloat redcolor[3] = { 1.0f, 0.0f, 0.0f };
 GLfloat bluecolor[3] = { 0.0f, 0.0f, 1.0f };
@@ -118,17 +118,33 @@ GLvoid drawScene()
 	if (once == 0) {
 		once = 1;
 		
-		std::cout << "obj 데이터 파싱 중" << std::endl;
+		std::cout << "----- obj 데이터 파싱 중 -----" << std::endl;
 
 		data = parseObj("player.obj");
 		convertToGLArrays(data, vertexArray, normalArray);
 		firstObjectVertexCount = vertexArray.size() / 3;
 
+		std::cout << "player 완료" << std::endl;
+		std::cout << "vertexcount - " << firstObjectVertexCount << std::endl;
+
 		data = parseObj("ball.obj");
 		convertToGLArrays(data, vertexArray, normalArray);
 		secondObjectVertexCount = vertexArray.size() / 3 - firstObjectVertexCount;
 
-		std::cout << "obj 데이터 파싱 완료" << std::endl;
+		std::cout << "ball 완료" << std::endl;
+		std::cout << "vertexcount - " << secondObjectVertexCount << std::endl;
+
+		std::cout << "----- obj 데이터 파싱 완료 -----" << std::endl;
+
+		for (int i = 0; i < firstObjectVertexCount; ++i) {
+			for (int j = 0; j < 3; ++j)
+				colors[i][j] = 0.5f;
+		}
+
+		for (int i = firstObjectVertexCount; i < firstObjectVertexCount + secondObjectVertexCount; ++i) {
+			for (int j = 0; j < 3; ++j)
+				colors[i][j] = 1.0f;
+		}
 
 		glutTimerFunc(25, TimerFunction, 1);
 		InitBuffer();
