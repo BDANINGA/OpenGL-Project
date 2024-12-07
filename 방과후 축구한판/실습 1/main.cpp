@@ -14,11 +14,13 @@ void InitBuffer();
 GLvoid drawScene();
 GLvoid Reshape(int w, int h);
 GLvoid Keyboard(unsigned char key, int x, int y);
+GLvoid KeyboardUp(unsigned char key, int x, int y);
 void Mouse(int button, int state, int x, int y);
 void windowToOpenGL(int window_x, int window_y, int window_width, int window_height, float& gl_x, float& gl_y);
 char* filetobuf(const char* file);
 void Motion(int x, int y);
 void SpecialKeys(int key, int x, int y);
+void SpecialKeysUp(int key, int x, int y);
 
 //--- 필요한 변수 선언
 GLuint vao, vbo[3];
@@ -52,7 +54,9 @@ void main(int argc, char** argv) //--- 윈도우 출력하고 콜백함수 설정
 	glutDisplayFunc(drawScene);
 	glutReshapeFunc(Reshape);
 	glutKeyboardFunc(Keyboard);
+	glutKeyboardUpFunc(KeyboardUp);
 	glutSpecialFunc(SpecialKeys);       // 방향키 입력 콜백 함수
+	glutSpecialUpFunc(SpecialKeysUp);
 	glutMouseFunc(Mouse);
 	glutMotionFunc(Motion);
 	glutMainLoop();
