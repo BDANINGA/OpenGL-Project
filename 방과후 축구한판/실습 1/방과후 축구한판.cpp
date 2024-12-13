@@ -55,7 +55,7 @@ glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 4.0f);
 glm::vec3 cameraDirection = glm::vec3(0.0f, 0.0f, 0.0f);
 glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 glm::vec3 light = glm::vec3(1.0f, 1.0f, 1.0f);
-glm::vec3 lightp = glm::vec3(0.0f, 2.0f, 3.0f);
+glm::vec3 lightp = glm::vec3(0.0f, 50.0f, 50.0f);
 //-----------------------------------------------------------------------
 // 241207
 void MoveBall(glm::vec3 playerPos);
@@ -140,7 +140,7 @@ GLfloat skycolor[3] = { 0.0f, 1.0f, 1.0f };
 GLfloat yellowcolor[3] = { 1.0f, 1.0f, 0.0f };
 GLfloat Long{ 2.0f };
 
-int firstObjectVertexCount{}, secondObjectVertexCount;
+int firstObjectVertexCount{}, secondObjectVertexCount{};
 //cube 36
 //pyramid 16
 //cone 1263
@@ -183,7 +183,7 @@ GLvoid drawScene() {
 	}
 
 	//--- 변경된 배경색 설정
-	glClearColor(1, 1, 1, 1.0f);
+	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glUseProgram(shaderProgramID);
@@ -196,8 +196,6 @@ GLvoid drawScene() {
 	drawPlayer(ballPos);
 	
 	drawGrass();
-
-	
 
 
 	// 뷰잉 변환
@@ -590,12 +588,20 @@ void drawGrass() {
 		0.0f, 1.0f, 0.0f   // 초록색
 	};
 
-	GLuint vao_grass, vbo_grass[2];
+	GLfloat grassNormal[] = {
+		// x, y, z
+		-50.0f, -0.3f, -50.0f,  // 왼쪽 하단
+		50.0f, -0.3f, -50.0f,   // 오른쪽 하단
+		50.0f, -0.3f, 50.0f,    // 오른쪽 상단
+		-50.0f, -0.3f, 50.0f    // 왼쪽 상단
+	};
+
+	GLuint vao_grass, vbo_grass[3];
 
 	glGenVertexArrays(1, &vao_grass); // VAO 생성
 	glBindVertexArray(vao_grass); // VAO 바인드
 
-	glGenBuffers(2, vbo_grass); // VBO 2개 생성
+	glGenBuffers(3, vbo_grass); // VBO 3개 생성
 
 	// 1번째 VBO: Grass vertices (좌표)
 	glBindBuffer(GL_ARRAY_BUFFER, vbo_grass[0]);
@@ -608,6 +614,12 @@ void drawGrass() {
 	glBufferData(GL_ARRAY_BUFFER, sizeof(grassColor), grassColor, GL_STATIC_DRAW);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
 	glEnableVertexAttribArray(1);
+
+	// 3번째 VBO: Grass color (색상)
+	glBindBuffer(GL_ARRAY_BUFFER, vbo_grass[2]);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(grassNormal), grassNormal, GL_STATIC_DRAW);
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(2);
 
 	// glDrawArrays를 이용하여 xz 평면을 그린다
 	glDrawArrays(GL_QUADS, 0, 4); // 4개의 정점으로 사각형 그리기
