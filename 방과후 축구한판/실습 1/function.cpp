@@ -451,21 +451,24 @@ ObjData parseObj(const std::string& filePath) {
     return data;
 }
 
-void convertToGLArrays(const ObjData& objData, std::vector<GLfloat>& vertexArray, std::vector<GLfloat>& normalArray) {
+void convertToGLArrays(const ObjData& objData, std::vector<GLfloat>& vertexArray, std::vector<GLfloat>& normalArray, std::vector<GLfloat>& texCoordArray) {
     for (const auto& face : objData.faces) {
         // 각 Face의 정점 정보를 삼각형 단위로 분리
         for (size_t i = 1; i + 1 < face.vertices.size(); ++i) {
             // 첫 번째 정점
             int vIdx1 = std::get<0>(face.vertices[0]);
             int nIdx1 = std::get<2>(face.vertices[0]);
+            int tIdx1 = std::get<1>(face.vertices[0]); // 텍스쳐 좌표 인덱스
 
             // 두 번째 정점
             int vIdx2 = std::get<0>(face.vertices[i]);
             int nIdx2 = std::get<2>(face.vertices[i]);
+            int tIdx2 = std::get<1>(face.vertices[i]); // 텍스쳐 좌표 인덱스
 
             // 세 번째 정점
             int vIdx3 = std::get<0>(face.vertices[i + 1]);
             int nIdx3 = std::get<2>(face.vertices[i + 1]);
+            int tIdx3 = std::get<1>(face.vertices[i + 1]); // 텍스쳐 좌표 인덱스
 
             // 정점 좌표 추가
             vertexArray.push_back(objData.vertices[vIdx1].x);
@@ -506,6 +509,34 @@ void convertToGLArrays(const ObjData& objData, std::vector<GLfloat>& vertexArray
             }
             else {
                 normalArray.insert(normalArray.end(), { 0.0f, 0.0f, 0.0f });
+            }
+
+            // 텍스쳐 좌표 추가
+            if (tIdx1 >= 0) {
+                texCoordArray.push_back(objData.texCoords[tIdx1].u);
+                texCoordArray.push_back(objData.texCoords[tIdx1].v);
+            }
+            else {
+                texCoordArray.push_back(0.0f);
+                texCoordArray.push_back(0.0f); // 기본값
+            }
+
+            if (tIdx2 >= 0) {
+                texCoordArray.push_back(objData.texCoords[tIdx2].u);
+                texCoordArray.push_back(objData.texCoords[tIdx2].v);
+            }
+            else {
+                texCoordArray.push_back(0.0f);
+                texCoordArray.push_back(0.0f); // 기본값
+            }
+
+            if (tIdx3 >= 0) {
+                texCoordArray.push_back(objData.texCoords[tIdx3].u);
+                texCoordArray.push_back(objData.texCoords[tIdx3].v);
+            }
+            else {
+                texCoordArray.push_back(0.0f);
+                texCoordArray.push_back(0.0f); // 기본값
             }
         }
     }

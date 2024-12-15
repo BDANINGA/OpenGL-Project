@@ -38,7 +38,7 @@ void windowToOpenGL(int window_x, int window_y, int window_width, int window_hei
 void TimerFunction(int value);
 void MakeShape(GLfloat Shape[][3], GLfloat normal[][3], GLfloat x1, GLfloat y1, GLfloat z1, GLfloat x2, GLfloat y2, GLfloat z2, int first_index, std::string shape);
 void MakeColor(GLfloat arr[][3], int first_index, int index_count, GLfloat color[3]);
-void convertToGLArrays(const ObjData& objData, std::vector<GLfloat>& vertexArray, std::vector<GLfloat>& normalArray);
+void convertToGLArrays(const ObjData& objData, std::vector<GLfloat>& vertexArray, std::vector<GLfloat>& normalArray, std::vector<GLfloat>& texCoordArray);
 ObjData parseObj(const std::string& filePath);
 void drawGoal();
 GLuint loadBMP(const char* filepath);
@@ -54,6 +54,7 @@ extern GLuint fragmentShader; //--- 프래그먼트 세이더 객체
 GLfloat colors[400000][3]{};
 std::vector<GLfloat> vertexArray;
 std::vector<GLfloat> normalArray;
+std::vector<GLfloat> textureArray;
 ObjData data{};
 glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 4.0f);
 glm::vec3 cameraDirection = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -132,14 +133,14 @@ void InitBuffer()
 	glEnableVertexAttribArray(2);
 
 	//--- 4번째 VBO를 활성화 하여 바인드 하고, 버텍스 속성 (텍스쳐)을 저장
-	glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[3]);
 	//--- 변수 colors에서 버텍스 색상을 복사한다.
 	//--- normal 배열의 사이즈: 9 *float
-	glBufferData(GL_ARRAY_BUFFER, normalArray.size() * sizeof(GLfloat), normalArray.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, textureArray.size() * sizeof(GLfloat), textureArray.data(), GL_STATIC_DRAW);
 	//--- 색상값을 attribute 인덱스 2번에 명시한다: 버텍스 당 3*float
-	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, 0, 0);
 	//--- attribute 인덱스 2번을 사용 가능하게 함.
-	glEnableVertexAttribArray(2);
+	glEnableVertexAttribArray(3);
 }
 
 int once = 0;
@@ -168,30 +169,30 @@ GLvoid drawScene() {
 		std::cout << "----- obj 데이터 파싱 중 -----" << std::endl;
 
 		data = parseObj("player.obj");
-		convertToGLArrays(data, vertexArray, normalArray);
+		convertToGLArrays(data, vertexArray, normalArray, textureArray);
 		firstObjectVertexCount = vertexArray.size() / 3;
 
 		std::cout << "player 완료" << std::endl;
 		std::cout << "vertexcount - " << firstObjectVertexCount << std::endl;
 
 		data = parseObj("ball.obj");
-		convertToGLArrays(data, vertexArray, normalArray);
+		convertToGLArrays(data, vertexArray, normalArray, textureArray);
 		secondObjectVertexCount = vertexArray.size() / 3 - firstObjectVertexCount;
 
 		std::cout << "ball 완료" << std::endl;
 		std::cout << "vertexcount - " << secondObjectVertexCount << std::endl;
 
 		data = parseObj("cube.obj");
-		convertToGLArrays(data, vertexArray, normalArray);
+		convertToGLArrays(data, vertexArray, normalArray, textureArray);
 		thirdObjectVertexCount[0] = vertexArray.size() / 3 - (firstObjectVertexCount + secondObjectVertexCount);
 		data = parseObj("cube.obj");
-		convertToGLArrays(data, vertexArray, normalArray);
+		convertToGLArrays(data, vertexArray, normalArray, textureArray);
 		thirdObjectVertexCount[1] = vertexArray.size() / 3 - (firstObjectVertexCount + secondObjectVertexCount + thirdObjectVertexCount[0]);
 		data = parseObj("cube.obj");
-		convertToGLArrays(data, vertexArray, normalArray);
+		convertToGLArrays(data, vertexArray, normalArray, textureArray);
 		thirdObjectVertexCount[2] = vertexArray.size() / 3 - (firstObjectVertexCount + secondObjectVertexCount + thirdObjectVertexCount[0] + thirdObjectVertexCount[1]);
 		data = parseObj("cube.obj");
-		convertToGLArrays(data, vertexArray, normalArray);
+		convertToGLArrays(data, vertexArray, normalArray, textureArray);
 		thirdObjectVertexCount[3] = vertexArray.size() / 3 - (firstObjectVertexCount + secondObjectVertexCount + thirdObjectVertexCount[0] + thirdObjectVertexCount[1] + thirdObjectVertexCount[2]);
 
 		std::cout << "골대 완료" << std::endl;
@@ -226,12 +227,10 @@ GLvoid drawScene() {
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	glBindVertexArray(vao);
 
-
 	drawBall();
 	drawPlayer(ballPos);
 	drawGoal();
 	drawGrass();
-
 
 	// 뷰잉 변환
 	glm::mat4 view = glm::mat4(1.0f);
@@ -787,7 +786,7 @@ void drawGrass() {
 	glBindTexture(GL_TEXTURE_2D, grassTextures); // 텍스처 ID 사용
 
 	// 셰이더에 텍스처 유닛 0을 연결
-	GLuint texLocation = glGetUniformLocation(shaderProgramID, "grassTexture");
+	GLuint texLocation = glGetUniformLocation(shaderProgramID, "Texture");
 	glUniform1i(texLocation, 0);  // 유닛 0을 grassTexture에 연결
 
 	// glDrawArrays를 이용하여 xz 평면을 그린다
@@ -808,6 +807,13 @@ void drawPlayer(glm::vec3 ballPos) {
 	unsigned int modelLocation = glGetUniformLocation(shaderProgramID, "modelTransform");
 	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(Trans));
 
+	glActiveTexture(GL_TEXTURE0);  // 텍스쳐 유닛 활성화
+	glBindTexture(GL_TEXTURE_2D, 0); // 텍스쳐를 바인딩하지 않음, 유닛 0에 텍스쳐 없음
+
+	// 셰이더에 텍스쳐 샘플러를 전달하지 않거나, 텍스쳐 사용을 0으로 설정
+	GLuint texLocation = glGetUniformLocation(shaderProgramID, "Texture");
+	glUniform1i(texLocation, 0);  // 텍스쳐 샘플러를 -1로 설정 (셰이더에서 해당 텍스쳐를 무시하도록)
+
 	// 플레이어 그리기
 	glDrawArrays(GL_TRIANGLES, 0, firstObjectVertexCount);
 }
@@ -826,6 +832,14 @@ void drawBall() {
 
 	unsigned int modelLocation = glGetUniformLocation(shaderProgramID, "modelTransform");
 	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(Trans));
+
+	GLuint ballTextures = loadBMP("축구공.bmp");
+	glActiveTexture(GL_TEXTURE0);      // 텍스처 생성
+	glBindTexture(GL_TEXTURE_2D, ballTextures); // 텍스처 ID 사용
+
+	// 셰이더에 텍스처 유닛 0을 연결
+	GLuint texLocation = glGetUniformLocation(shaderProgramID, "Texture");
+	glUniform1i(texLocation, 0);  // 유닛 0을 grassTexture에 연결
 
 	// 두 번째 객체(공) 그리기
 	glDrawArrays(GL_TRIANGLES, firstObjectVertexCount, secondObjectVertexCount);

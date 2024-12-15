@@ -29,7 +29,7 @@ float specularLight = max (dot (viewDir, reflectDir), 0.0);
 specularLight = pow(specularLight, shininess);
 vec3 specular = specularLight * lightColor;
 
-vec3 result = (ambient + diffuse + specular) * texColor;
+vec3 result = (ambient + diffuse + specular) * texColor * ObjectColor;
 
 FragColor = vec4 (result, 1.0);
 }
