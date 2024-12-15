@@ -416,11 +416,9 @@ bool checkSegmentCollision(glm::vec3 start, glm::vec3 end, glm::vec3 goalPos, gl
 
 
 
-
-
-
-
 float playerRotation = 0.0f;  // 초기 값은 0도, z축을 향하도록 설정
+
+
 
 void MovePlayer(glm::vec3 ballPos) {
 	float moveSpeed = 1.0f;  // 플레이어 기본 이동 속도
@@ -441,7 +439,7 @@ void MovePlayer(glm::vec3 ballPos) {
 		MAX_PLAYER_SPEED = 50.0f;
 		acceleration = 0.2f;
 	}
-		
+
 	if (player_has_ball) {
 		// 플레이어와 공 사이의 벡터 차이 계산
 		distanceVec = playerPos - ballPos;
@@ -452,14 +450,22 @@ void MovePlayer(glm::vec3 ballPos) {
 			distanceVec = glm::normalize(distanceVec);
 
 			// 플레이어가 공으로 점진적으로 다가가도록 이동
-			playerPos.x -= distanceVec.x * 0.07f;  // 이동 속도만큼 플레이어 위치 변경
-			playerPos.z -= distanceVec.z * 0.07f;  // 이동 속도만큼 플레이어 위치 변경
+			if (sprint) {
+				playerPos.x -= distanceVec.x * 0.13f;  // 이동 속도만큼 플레이어 위치 변경
+				playerPos.z -= distanceVec.z * 0.13f;  // 이동 속도만큼 플레이어 위치 변경
+			}
+			else {
+				playerPos.x -= distanceVec.x * 0.07f;  // 이동 속도만큼 플레이어 위치 변경
+				playerPos.z -= distanceVec.z * 0.07f;  // 이동 속도만큼 플레이어 위치 변경
+			}
+
 		}
 	}
 	else {
 		// 방향키에 따른 플레이어 이동 방향 설정
 		if (keyStates[GLUT_KEY_UP]) {
 			moveDirection.z -= moveSpeed;  // 뒤쪽으로 이동
+
 		}
 		if (keyStates[GLUT_KEY_DOWN]) {
 			moveDirection.z += moveSpeed;  // 앞쪽으로 이동
@@ -501,6 +507,18 @@ void MovePlayer(glm::vec3 ballPos) {
 	}
 	else if (keyStates[GLUT_KEY_DOWN]) {
 		playerRotation = glm::radians(0.0f);
+	}
+	if (keyStates[GLUT_KEY_UP] && keyStates[GLUT_KEY_LEFT]) {
+		playerRotation = glm::radians(225.0f);
+	}
+	else if (keyStates[GLUT_KEY_UP] && keyStates[GLUT_KEY_RIGHT]) {
+		playerRotation = glm::radians(135.0f);
+	}
+	else if (keyStates[GLUT_KEY_DOWN] && keyStates[GLUT_KEY_LEFT]) {
+		playerRotation = glm::radians(45.0f);
+	}
+	else if (keyStates[GLUT_KEY_DOWN] && keyStates[GLUT_KEY_RIGHT]) {
+		playerRotation = glm::radians(-45.0f);
 	}
 	// 가속도를 적용하기 전에 이동 방향이 0이 아닌지 확인
 	if (glm::length(moveDirection) > 0.0f) {
@@ -568,86 +586,6 @@ void MovePlayer(glm::vec3 ballPos) {
 		}
 	}
 }
-void drawGrass() {
-	// xz 평면의 범위를 넓혀서 그리기
-	GLfloat grassVertices[] = {
-		// x, y, z
-		-50.0f, -0.3f, -50.0f,  // 왼쪽 하단
-		50.0f, -0.3f, -50.0f,   // 오른쪽 하단
-		50.0f, -0.3f, 50.0f,    // 오른쪽 상단
-		-50.0f, -0.3f, 50.0f    // 왼쪽 상단
-	};
-
-	GLfloat grassColor[] = {
-		0.0f, 1.0f, 0.0f,  // 초록색
-		0.0f, 1.0f, 0.0f,  // 초록색
-		0.0f, 1.0f, 0.0f,  // 초록색
-		0.0f, 1.0f, 0.0f   // 초록색
-	};
-
-	GLfloat grassNormal[] = {
-		// x, y, z
-		0.0f, 1.0f, 0.0f,  // 왼쪽 하단
-		0.0f, 1.0f, 0.0f,  // 오른쪽 하단
-		0.0f, 1.0f, 0.0f,  // 오른쪽 상단
-		0.0f, 1.0f, 0.0f   // 왼쪽 상단
-	};
-
-	GLfloat grassTexture[] = {
-		// x, y, z
-		0.0f, 0.0f,  // 왼쪽 하단
-		50.0f, 0.0f,   // 오른쪽 하단
-		50.0f, 50.0f,    // 오른쪽 상단
-		0.0f, 50.0f    // 왼쪽 상단
-	};
-
-	GLuint vao_grass, vbo_grass[4];
-
-	glGenVertexArrays(1, &vao_grass); // VAO 생성
-	glBindVertexArray(vao_grass); // VAO 바인드
-
-	glGenBuffers(4, vbo_grass); // VBO 4개 생성
-
-	// 1번째 VBO: Grass vertices (좌표)
-	glBindBuffer(GL_ARRAY_BUFFER, vbo_grass[0]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(grassVertices), grassVertices, GL_STATIC_DRAW);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-	glEnableVertexAttribArray(0);
-
-	// 2번째 VBO: Grass color (색상)
-	glBindBuffer(GL_ARRAY_BUFFER, vbo_grass[1]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(grassColor), grassColor, GL_STATIC_DRAW);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
-	glEnableVertexAttribArray(1);
-
-	// 3번째 VBO: Grass color (색상)
-	glBindBuffer(GL_ARRAY_BUFFER, vbo_grass[2]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(grassNormal), grassNormal, GL_STATIC_DRAW);
-	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, 0);
-	glEnableVertexAttribArray(2);
-
-	// 4번째 VBO: Grass color (색상)
-	glBindBuffer(GL_ARRAY_BUFFER, vbo_grass[3]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(grassTexture), grassTexture, GL_STATIC_DRAW);
-	glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, 0, 0);
-	glEnableVertexAttribArray(3);
-
-	
-
-	GLuint grassTextures = loadBMP("잔디.bmp");
-	glActiveTexture(GL_TEXTURE0);      // 텍스처 생성
-	glBindTexture(GL_TEXTURE_2D, grassTextures); // 텍스처 ID 사용
-
-	// 셰이더에 텍스처 유닛 0을 연결
-	GLuint texLocation = glGetUniformLocation(shaderProgramID, "Texture");
-	glUniform1i(texLocation, 0);  // 유닛 0을 grassTexture에 연결
-
-	// glDrawArrays를 이용하여 xz 평면을 그린다
-	glDrawArrays(GL_QUADS, 0, 4); // 4개의 정점으로 사각형 그리기
-
-	glBindVertexArray(0); // VAO 바인딩 해제
-}
-
 void drawPlayer(glm::vec3 ballPos) {
 	MovePlayer(ballPos);
 
@@ -671,12 +609,15 @@ void drawPlayer(glm::vec3 ballPos) {
 	glDrawArrays(GL_TRIANGLES, 0, firstObjectVertexCount);
 }
 
+// 공의 회전 각도와 회전 속도 변수 추가
+float rotationAngle = 0.0f;  // 회전 각도 (라디안)
+float rotationSpeed = 5.0f;  // 회전 속도 (단위: 라디안/초)
+glm::vec3 rotationDirection = glm::vec3(0.0f, 0.0f, 0.0f);
 void MoveBall(glm::vec3 playerPos, glm::vec3 keeperPos) {
 	const float maxDistance = 0.2f;
 	glm::vec3 distanceVec = playerPos - ballPos;
 	float distance = glm::distance(glm::vec2(playerPos.x, playerPos.z), glm::vec2(ballPos.x, ballPos.z));
 	float CURVE_TURN_SPEED = 0.03f;
-
 
 	if (player_has_ball) {
 		ballAcceleration.x = 0;
@@ -693,30 +634,38 @@ void MoveBall(glm::vec3 playerPos, glm::vec3 keeperPos) {
 		if (keyStates[GLUT_KEY_UP] && keyStates[GLUT_KEY_LEFT]) {
 			ballAcceleration.x = -ACCELERATION;
 			ballAcceleration.z = -ACCELERATION;
+			rotationDirection = glm::vec3(-1.0f, 0.0f, 1.0f);  // 시계방향 회전
 		}
 		else if (keyStates[GLUT_KEY_UP] && keyStates[GLUT_KEY_RIGHT]) {
 			ballAcceleration.x = ACCELERATION;
 			ballAcceleration.z = -ACCELERATION;
+			rotationDirection = glm::vec3(-1.0f, 0.0f, -1.0f);  // 시계방향 회전
 		}
 		else if (keyStates[GLUT_KEY_DOWN] && keyStates[GLUT_KEY_LEFT]) {
 			ballAcceleration.x = -ACCELERATION;
 			ballAcceleration.z = ACCELERATION;
+			rotationDirection = glm::vec3(1.0f, 0.0f, 1.0f); // 반시계방향 회전
 		}
 		else if (keyStates[GLUT_KEY_DOWN] && keyStates[GLUT_KEY_RIGHT]) {
 			ballAcceleration.x = ACCELERATION;
 			ballAcceleration.z = ACCELERATION;
+			rotationDirection = glm::vec3(1.0f, 0.0f, -1.0f); // 반시계방향 회전
 		}
 		else if (keyStates[GLUT_KEY_UP]) {
 			ballAcceleration.z = -ACCELERATION;
+			rotationDirection = glm::vec3(-1.0f, 0.0f, 0.0f);  // 시계방향 회전
 		}
 		else if (keyStates[GLUT_KEY_DOWN]) {
 			ballAcceleration.z = ACCELERATION;
+			rotationDirection = glm::vec3(1.0f, 0.0f, 0.0f); // 반시계방향 회전
 		}
 		else if (keyStates[GLUT_KEY_LEFT]) {
 			ballAcceleration.x = -ACCELERATION;
+			rotationDirection = glm::vec3(0.0f, 0.0f, 1.0f); // 반시계방향 회전
 		}
 		else if (keyStates[GLUT_KEY_RIGHT]) {
 			ballAcceleration.x = ACCELERATION;
+			rotationDirection = glm::vec3(0.0f, 0.0f, -1.0f);  // 180도 회전
 		}
 		else {
 			ballAcceleration = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -727,61 +676,11 @@ void MoveBall(glm::vec3 playerPos, glm::vec3 keeperPos) {
 		ballAcceleration = glm::vec3(0.0f, 0.0f, 0.0f);
 	}
 
-	// 골대의 각 부품 좌표 및 크기
-	glm::vec3 goalBarPos = glm::vec3(0.0f, 2.0f, -30.0f);
-	glm::vec3 goalBarScale = glm::vec3(2.0f, 0.05f, 1.0f);
-	glm::vec3 leftPostPos = glm::vec3(-2.0f, 1.0f, -30.0f);
-	glm::vec3 leftPostScale = glm::vec3(0.05f, 1.0f, 1.0f);
-	glm::vec3 rightPostPos = glm::vec3(2.0f, 1.0f, -30.0f);
-	glm::vec3 rightPostScale = glm::vec3(0.05f, 1.0f, 1.0f);
-	glm::vec3 bottomBarPos = glm::vec3(0.0f, 1.0f, -31.0f);
-	glm::vec3 bottomBarScale = glm::vec3(2.0f, 1.0f, 0.05f);
-
-	glm::vec3 startPos = ballPos;
-	glm::vec3 endPos = ballPos + ballVelocity; // 공의 이동 방향
-
-	// **골키퍼와의 충돌 처리**
-	glm::vec3 keeperSize = glm::vec3(0.5f, 0.7f, 0.5f);  // 골키퍼 몸통 크기 설정
-	//std::cout << keeperPos.x - keeperSize.x << std::endl;
-	// 충돌 체크: 공과 골키퍼가 충돌했는지 검사
-	if (ballPos.x > keeperPos.x - keeperSize.x && ballPos.x < keeperPos.x + keeperSize.x &&
-		ballPos.z > keeperPos.z - keeperSize.z && ballPos.z < keeperPos.z + keeperSize.z &&
-		ballPos.y > keeperPos.y - keeperSize.y && ballPos.y < keeperPos.y + keeperSize.y) {
-		// 공이 골키퍼 몸통과 충돌했다면
-		std::cout << "골키퍼와 충돌!" << std::endl;
-
-		// 공의 속도를 반사 (골키퍼가 막았다고 가정)
-		//ballVelocity = -ballVelocity * BALL_BOUNCE_DAMPING;
-
-		// 공이 골키퍼에 맞고 방향이 바뀐 후 속도 감소
-		//ballVelocity *= 0.5f; // 속도를 감소시킬 수도 있음 (원하는 효과에 맞게 조정)
-		ballVelocity *= 0.0f;
-	}
-
-	// 골대와의 충돌 처리
-	if (
-		(checkSegmentCollision(startPos, endPos, rightPostPos, rightPostScale) && ballPos.z <= -28) ||
-		(checkSegmentCollision(startPos, endPos, leftPostPos, leftPostScale) && ballPos.z <= -28) ||
-		(checkSegmentCollision(startPos, endPos, goalBarPos, goalBarScale) && ballPos.z <= -30) ||
-		(checkSegmentCollision(startPos, endPos, bottomBarPos, bottomBarScale) && ballPos.z <= -30)
-		)
-	{
-		// 충돌 처리
-		ballVelocity = -ballVelocity * BALL_BOUNCE_DAMPING;
-		std::cout << "충돌 골대" << std::endl;
-
-		// 골대에 들어감
-		if (checkSegmentCollision(startPos, endPos, bottomBarPos, bottomBarScale) && ballPos.z <= -30) {
-			std::cout << "골" << std::endl;
-			ballVelocity = glm::vec3(0.0f, 0.0f, 0.0f);
-		}
-	}
+	// 공의 속도 업데이트
+	ballVelocity += ballAcceleration;
 
 	// 중력 적용
 	ballVelocity.y += GRAVITY;
-
-	// 공의 속도 업데이트
-	ballVelocity += ballAcceleration;
 
 	// 최대 속도 제한
 	float speed = glm::length(ballVelocity);
@@ -797,9 +696,10 @@ void MoveBall(glm::vec3 playerPos, glm::vec3 keeperPos) {
 	// 공이 멈추도록: 일정 속도 이하로 떨어지면 공을 멈춤
 	if (glm::length(ballVelocity) < DECELERATION) {
 		ballVelocity = glm::vec3(0.0f, 0.0f, 0.0f);
+		rotationAngle = 0.0f;  // 공이 멈추면 회전도 멈춤
 	}
 
-	// **Curve 효과** (Z가 눌렸고, curve 상태일 때만)
+	// Curve 효과 (Z가 눌렸고, curve 상태일 때만)
 	if (curve && !player_has_ball && distance <= 15) {
 		if (ballPos.x > 0.1f) {
 			ballVelocity.x -= CURVE_TURN_SPEED;
@@ -839,17 +739,26 @@ void MoveBall(glm::vec3 playerPos, glm::vec3 keeperPos) {
 		ballPos.z = 50.0f;
 		ballVelocity.z = -ballVelocity.z * BALL_BOUNCE_DAMPING;
 	}
+
+	// 회전 각도 업데이트 (공의 진행 방향에 비례)
+	rotationAngle += glm::length(ballVelocity) * rotationSpeed;
 }
+
 void drawBall(glm::vec3 keeperPos) {
 	MoveBall(playerPos, keeperPos);
+
 	glm::mat4 T = glm::mat4(1.0f);
 	glm::mat4 S = glm::mat4(1.0f);
+	glm::mat4 R = glm::mat4(1.0f);  // 회전 행렬
 	glm::mat4 Trans = glm::mat4(1.0f);
+
+	// 회전 적용 (회전 각도 누적 적용)
+	R = glm::rotate(R, rotationAngle, rotationDirection);  // 방향에 따라 회전
 
 	// 두 번째 객체(공) 이동을 위한 위치 업데이트
 	T = glm::translate(T, ballPos);  // 두 번째 객체의 위치 적용
 	S = glm::scale(S, glm::vec3(0.01f, 0.01f, 0.01f));  // 크기 조정
-	Trans = T * S;
+	Trans = T * R * S; // 위치, 회전, 크기 순서로 적용
 
 	unsigned int modelLocation = glGetUniformLocation(shaderProgramID, "modelTransform");
 	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(Trans));
@@ -865,6 +774,8 @@ void drawBall(glm::vec3 keeperPos) {
 	// 두 번째 객체(공) 그리기
 	glDrawArrays(GL_TRIANGLES, firstObjectVertexCount, secondObjectVertexCount);
 }
+
+
 
 
 void MoveKeeper(glm::vec3 ballPos, glm::vec3& keeperPos) {
@@ -885,7 +796,8 @@ void MoveKeeper(glm::vec3 ballPos, glm::vec3& keeperPos) {
 
 	// 골키퍼 위치를 목표 위치로 부드럽게 이동 (lerp 방식 사용)
 	keeperPos.x = glm::mix(keeperPos.x, targetX, keeperSpeed);
-	keeperPos.y = glm::mix(keeperPos.y, targetY, keeperSpeed);
+	if (ballPos.z - keeperPos.z <= 5)
+		keeperPos.y = glm::mix(keeperPos.y, targetY, keeperSpeed);
 }
 void drawKeeper(glm::vec3 ballPos, glm::vec3& keeperPos) {
 	MoveKeeper(ballPos, keeperPos);
@@ -952,7 +864,85 @@ void drawGoal() {
 	Transform = glm::mat4(1.0f);
 	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(Transform));
 }
+void drawGrass() {
+	// xz 평면의 범위를 넓혀서 그리기
+	GLfloat grassVertices[] = {
+		// x, y, z
+		-50.0f, -0.3f, -50.0f,  // 왼쪽 하단
+		50.0f, -0.3f, -50.0f,   // 오른쪽 하단
+		50.0f, -0.3f, 50.0f,    // 오른쪽 상단
+		-50.0f, -0.3f, 50.0f    // 왼쪽 상단
+	};
 
+	GLfloat grassColor[] = {
+		0.0f, 1.0f, 0.0f,  // 초록색
+		0.0f, 1.0f, 0.0f,  // 초록색
+		0.0f, 1.0f, 0.0f,  // 초록색
+		0.0f, 1.0f, 0.0f   // 초록색
+	};
+
+	GLfloat grassNormal[] = {
+		// x, y, z
+		0.0f, 1.0f, 0.0f,  // 왼쪽 하단
+		0.0f, 1.0f, 0.0f,  // 오른쪽 하단
+		0.0f, 1.0f, 0.0f,  // 오른쪽 상단
+		0.0f, 1.0f, 0.0f   // 왼쪽 상단
+	};
+
+	GLfloat grassTexture[] = {
+		// x, y, z
+		0.0f, 0.0f,  // 왼쪽 하단
+		50.0f, 0.0f,   // 오른쪽 하단
+		50.0f, 50.0f,    // 오른쪽 상단
+		0.0f, 50.0f    // 왼쪽 상단
+	};
+
+	GLuint vao_grass, vbo_grass[4];
+
+	glGenVertexArrays(1, &vao_grass); // VAO 생성
+	glBindVertexArray(vao_grass); // VAO 바인드
+
+	glGenBuffers(4, vbo_grass); // VBO 4개 생성
+
+	// 1번째 VBO: Grass vertices (좌표)
+	glBindBuffer(GL_ARRAY_BUFFER, vbo_grass[0]);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(grassVertices), grassVertices, GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(0);
+
+	// 2번째 VBO: Grass color (색상)
+	glBindBuffer(GL_ARRAY_BUFFER, vbo_grass[1]);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(grassColor), grassColor, GL_STATIC_DRAW);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(1);
+
+	// 3번째 VBO: Grass color (색상)
+	glBindBuffer(GL_ARRAY_BUFFER, vbo_grass[2]);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(grassNormal), grassNormal, GL_STATIC_DRAW);
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(2);
+
+	// 4번째 VBO: Grass color (색상)
+	glBindBuffer(GL_ARRAY_BUFFER, vbo_grass[3]);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(grassTexture), grassTexture, GL_STATIC_DRAW);
+	glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(3);
+
+
+
+	GLuint grassTextures = loadBMP("잔디.bmp");
+	glActiveTexture(GL_TEXTURE0);      // 텍스처 생성
+	glBindTexture(GL_TEXTURE_2D, grassTextures); // 텍스처 ID 사용
+
+	// 셰이더에 텍스처 유닛 0을 연결
+	GLuint texLocation = glGetUniformLocation(shaderProgramID, "Texture");
+	glUniform1i(texLocation, 0);  // 유닛 0을 grassTexture에 연결
+
+	// glDrawArrays를 이용하여 xz 평면을 그린다
+	glDrawArrays(GL_QUADS, 0, 4); // 4개의 정점으로 사각형 그리기
+
+	glBindVertexArray(0); // VAO 바인딩 해제
+}
 GLuint loadBMP(const char* filepath) {
 	FILE* file = fopen(filepath, "rb");
 	if (!file) {
