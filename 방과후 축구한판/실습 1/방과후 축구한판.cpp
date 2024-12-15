@@ -244,7 +244,7 @@ GLvoid drawScene() {
 }
 
 bool sprint = 0;
-
+bool curve = 0;
 //--- 다시그리기 콜백 함수
 GLvoid Reshape(int w, int h) //--- 콜백 함수: 다시 그리기 콜백 함수
 {
@@ -252,11 +252,7 @@ GLvoid Reshape(int w, int h) //--- 콜백 함수: 다시 그리기 콜백 함수
 }
 void Keyboard(unsigned char key, int x, int y) {
 	switch (key) {
-	case 'z':
-		if (ballPos.y == 0.0f) {
-			ballVelocity.y = JUMP_STRENGTH;
-		}
-		break;
+
 	case 'd':
 		// d 키가 눌리면 슈팅 파워 증가
 		shootingInProgress = true;
@@ -265,9 +261,7 @@ void Keyboard(unsigned char key, int x, int y) {
 		// d 키를 대소문자로 처리, 대소문자 구분
 		shootingInProgress = true;
 		break;
-	case 'Z':
-		cameraPos.z -= 0.1f;
-		break;
+
 	case 'y':
 		cameraPos.y += 0.1f;
 		break;
@@ -283,6 +277,10 @@ void Keyboard(unsigned char key, int x, int y) {
 	case 'e':
 	case 'E':
 		sprint = 1;
+		break;
+	case 'z':
+	case 'Z':
+		curve = 1;
 		break;
 	case 'q':
 		glutLeaveMainLoop();
@@ -309,6 +307,10 @@ void KeyboardUp(unsigned char key, int x, int y) {
 	case 'e':
 	case 'E':
 		sprint = 0;
+		break;
+	case 'z':
+	case 'Z':
+		curve = 0;
 		break;
 	case 'q':
 		glutLeaveMainLoop();
@@ -399,11 +401,12 @@ void MoveBall(glm::vec3 playerPos) {
 	const float maxDistance = 0.2f;
 	glm::vec3 distanceVec = playerPos - ballPos;
 	float distance = glm::distance(glm::vec2(playerPos.x, playerPos.z), glm::vec2(ballPos.x, ballPos.z));
-
+	float CURVE_TURN_SPEED = 0.03f;
+	std::cout << distance << std::endl;
 	if (player_has_ball) {
 		ballAcceleration.x = 0;
 		ballAcceleration.z = 0;
-		std::cout << distance << std::endl;
+		
 		if (shootingInProgress && distance <= 1.5f) {
 			shootingPower += SHOOTING_INCREMENT;
 			if (shootingPower > MAX_SHOOTING_POWER) {
@@ -447,6 +450,7 @@ void MoveBall(glm::vec3 playerPos) {
 	if (distance >= 1.0f) {
 		ballAcceleration = glm::vec3(0.0f, 0.0f, 0.0f);
 	}
+
 	// 골대의 각 부품 좌표 및 크기
 	glm::vec3 goalBarPos = glm::vec3(0.0f, 2.0f, -30.0f);
 	glm::vec3 goalBarScale = glm::vec3(2.0f, 0.05f, 1.0f);
@@ -500,6 +504,21 @@ void MoveBall(glm::vec3 playerPos) {
 		ballVelocity = glm::vec3(0.0f, 0.0f, 0.0f);
 	}
 
+	// **Curve 효과** (Z가 눌렸고, curve 상태일 때만)
+	if (curve && !player_has_ball && distance <= 15) {
+		// X 좌표가 0보다 크면 감소시키고, 작으면 증가시켜 0으로 감아차기 효과
+		if (ballPos.x > 0.1f) {
+			ballVelocity.x -= CURVE_TURN_SPEED;  // 점진적으로 X 값을 0으로 감아차기
+		}
+		else if (ballPos.x < -0.1f) {
+			ballVelocity.x += CURVE_TURN_SPEED;  // 반대로 X 값을 0으로 감아차기
+		}
+		// X 좌표가 거의 0에 도달하면, 미세하게 이동하지 않도록
+		if (glm::abs(ballPos.x) < 0.05f) {
+			ballVelocity.x = 0.0f;  // 감아차기 후 X 속도 0으로
+		}
+	}
+
 	// 공의 위치 업데이트
 	ballPos += ballVelocity;
 
@@ -528,6 +547,7 @@ void MoveBall(glm::vec3 playerPos) {
 		ballVelocity.z = -ballVelocity.z * BALL_BOUNCE_DAMPING;
 	}
 }
+
 
 
 
