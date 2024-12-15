@@ -414,8 +414,11 @@ GLvoid SpecialKeysUp(int key, int x, int y) {
 
 void MoveBall(glm::vec3 playerPos) {
 	const float maxDistance = 0.2f;
+	glm::vec3 distanceVec = playerPos - ballPos;
+	float distance = glm::distance(glm::vec2(playerPos.x, playerPos.z), glm::vec2(ballPos.x, ballPos.z));
 	if (player_has_ball) {
-		
+		ballAcceleration.x = 0;
+		ballAcceleration.z = 0;
 		// d 키가 눌렸을 때 슈팅 파워를 증가시킴
 		if (shootingInProgress) {
 			shootingPower += SHOOTING_INCREMENT;
@@ -428,6 +431,7 @@ void MoveBall(glm::vec3 playerPos) {
 		if (keyStates[GLUT_KEY_UP] && keyStates[GLUT_KEY_LEFT]) {
 			ballAcceleration.x = -ACCELERATION;
 			ballAcceleration.z = -ACCELERATION;
+
 		}
 		else if (keyStates[GLUT_KEY_UP] && keyStates[GLUT_KEY_RIGHT]) {
 			ballAcceleration.x = ACCELERATION;
@@ -453,12 +457,17 @@ void MoveBall(glm::vec3 playerPos) {
 		else if (keyStates[GLUT_KEY_RIGHT]) {
 			ballAcceleration.x = ACCELERATION;
 		}
+
 		else {
 			ballAcceleration = glm::vec3(0.0f, 0.0f, 0.0f); // 방향키 입력이 없을 경우 가속도 0으로 초기화
 		}
 	}
-	
-
+	if (distance >= 1.0f) {
+		ballAcceleration = glm::vec3(0.0f, 0.0f, 0.0f);
+	}
+	//std::cout << "공의 가속도 " << glm::length(ballAcceleration) << std::endl;
+	std::cout << "공의 x 가속도 " << ballAcceleration.x << std::endl;
+	std::cout << "공의 z 가속도 " << ballAcceleration.z << std::endl;
 	// 중력 적용: y 방향으로 가속도 감소
 	ballVelocity.y += GRAVITY;  // 공에 중력 가속도 적용
 
@@ -508,20 +517,10 @@ void MoveBall(glm::vec3 playerPos) {
 		ballPos.z = 50.0f;  // 공을 경계에 맞춰 위치 조정
 		ballVelocity.z = -ballVelocity.z * BALL_BOUNCE_DAMPING;  // z 방향 속도 반전 (튕기기)
 	}
-	//if (player_has_ball) {
-	//	// 카메라 설정: 플레이어를 따라가는 카메라
-	//	cameraPos = ballPos + glm::vec3(0.0f, 1.0f, 5.0f);  // 플레이어 위치 기준으로 카메라 위치 설정 (위 2, 뒤 5)
-	//	cameraDirection = ballPos;  // 카메라는 플레이어를 향하도록 설정
-
-	//	// 카메라의 위치와 방향을 바탕으로 뷰 변환 행렬을 계산
-	//	glm::mat4 view = glm::lookAt(cameraPos, cameraDirection, cameraUp);
-	//	unsigned int viewLocation = glGetUniformLocation(shaderProgramID, "viewTransform");
-	//	glUniformMatrix4fv(viewLocation, 1, GL_FALSE, &view[0][0]);
-	//	//std::cout << "hello";
-	//}
 
 }
 
+float playerRotation = 0.0f;  // 초기 값은 0도, z축을 향하도록 설정
 
 void MovePlayer(glm::vec3 ballPos) {
 	const float moveSpeed = 1.0f;  // 플레이어 기본 이동 속도
@@ -531,11 +530,13 @@ void MovePlayer(glm::vec3 ballPos) {
 	glm::vec3 playerVelocity = glm::vec3(0.0f, 0.0f, 0.0f);  // 속도
 	glm::vec3 moveDirection(0.0f);  // 이동 방향 초기화
 
+	glm::vec3 distanceVec;
+	float distance = glm::distance(glm::vec2(playerPos.x, playerPos.z), glm::vec2(ballPos.x, ballPos.z));
 	const float maxDistance = 0.5f;  // 공과 플레이어 사이의 최대 거리
 
 	if (player_has_ball) {
 		// 플레이어와 공 사이의 벡터 차이 계산
-		glm::vec3 distanceVec = playerPos - ballPos;
+		distanceVec = playerPos - ballPos;
 
 		// 거리가 maxDistance를 초과하는 경우
 		if (glm::length(distanceVec) > maxDistance) {
@@ -579,7 +580,19 @@ void MovePlayer(glm::vec3 ballPos) {
 			moveDirection.z += moveSpeed;
 		}
 	}
-
+	// 회전 처리
+	if (keyStates[GLUT_KEY_LEFT] && playerRotation != glm::radians(90.0f)) {
+		playerRotation = glm::radians(-90.0f); 
+	}
+	else if (keyStates[GLUT_KEY_RIGHT] && playerRotation != glm::radians(-90.0f)) {
+		playerRotation = glm::radians(90.0f);
+	}
+	else if (keyStates[GLUT_KEY_UP] && playerRotation != glm::radians(180.0f)) {
+		playerRotation = glm::radians(180.0f);  
+	}
+	else if (keyStates[GLUT_KEY_DOWN] && playerRotation != glm::radians(0.0f)) {
+		playerRotation = glm::radians(0.0f);
+	}
 	// 가속도를 적용하기 전에 이동 방향이 0이 아닌지 확인
 	if (glm::length(moveDirection) > 0.0f) {
 		// 이동 방향을 정규화하여 가속도를 적용
@@ -617,27 +630,35 @@ void MovePlayer(glm::vec3 ballPos) {
 
 	//if (!player_has_ball) {
 		// 카메라 설정: 플레이어를 따라가는 카메라
-		cameraPos = playerPos + glm::vec3(0.0f, 1.0f, 5.0f);  // 플레이어 위치 기준으로 카메라 위치 설정 (위 2, 뒤 5)
-		cameraDirection = playerPos;  // 카메라는 플레이어를 향하도록 설정
+	cameraPos = playerPos + glm::vec3(0.0f, 1.0f, 5.0f);  // 플레이어 위치 기준으로 카메라 위치 설정 (위 2, 뒤 5)
+	cameraDirection = playerPos;  // 카메라는 플레이어를 향하도록 설정
 
-		// 카메라의 위치와 방향을 바탕으로 뷰 변환 행렬을 계산
-		glm::mat4 view = glm::lookAt(cameraPos, cameraDirection, cameraUp);
-		unsigned int viewLocation = glGetUniformLocation(shaderProgramID, "viewTransform");
-		glUniformMatrix4fv(viewLocation, 1, GL_FALSE, &view[0][0]);
+	// 카메라의 위치와 방향을 바탕으로 뷰 변환 행렬을 계산
+	glm::mat4 view = glm::lookAt(cameraPos, cameraDirection, cameraUp);
+	unsigned int viewLocation = glGetUniformLocation(shaderProgramID, "viewTransform");
+	glUniformMatrix4fv(viewLocation, 1, GL_FALSE, &view[0][0]);
 	//}
 
-	std::cout << playerPos.x << ", " << playerPos.y << ", " << playerPos.z << ", " << std::endl;
-	std::cout << ballPos.x << ", " << ballPos.y << ", " << ballPos.z << ", " << std::endl;
-
+	//std::cout << playerPos.x << ", " << playerPos.y << ", " << playerPos.z << ", " << std::endl;
+	//std::cout << ballPos.x << ", " << ballPos.y << ", " << ballPos.z << ", " << std::endl;
+	//std::cout << glm::length(distanceVec) << std::endl;
+	std::cout << distance << std::endl;
 	if (ballPos.y <= 2.0f) {
 		float distance = glm::distance(glm::vec2(playerPos.x, playerPos.z), glm::vec2(ballPos.x, ballPos.z));
-		if (distance <= 1.0f) {
+
+		if (distance <= 0.75f) {
 			std::cout << "Catch Ball!" << std::endl;
+			if (player_has_ball == 0) {
+				ballVelocity.x = 0.0f;
+				ballVelocity.z = 0.0f;
+				playerPos = ballPos;
+			}
+
 			player_has_ball = 1;
+
 		}
 	}
 }
-
 void drawGrass() {
 	// xz 평면의 범위를 넓혀서 그리기
 	GLfloat grassVertices[] = {
@@ -696,16 +717,20 @@ void drawGrass() {
 
 void drawPlayer(glm::vec3 ballPos) {
 	MovePlayer(ballPos);
-	glm::mat4 Trans = glm::mat4(1.0f);
 
-	// 첫 번째 객체(플레이어) 이동을 위한 위치 업데이트
+	glm::mat4 Trans = glm::mat4(1.0f);
+	// 플레이어 이동을 위한 위치 업데이트
 	Trans = glm::translate(Trans, playerPos);
+	// 회전 적용
+	Trans = glm::rotate(Trans, playerRotation, glm::vec3(0.0f, 1.0f, 0.0f));  // 회전 적용
+
 	unsigned int modelLocation = glGetUniformLocation(shaderProgramID, "modelTransform");
 	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(Trans));
 
-	// 첫 번째 객체(플레이어) 그리기
+	// 플레이어 그리기
 	glDrawArrays(GL_TRIANGLES, 0, firstObjectVertexCount);
 }
+
 
 void drawBall() {
 	MoveBall(playerPos);
