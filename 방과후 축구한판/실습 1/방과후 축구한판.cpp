@@ -86,7 +86,7 @@ const float BALL_BOUNCE_DAMPING = 0.8f;  // 바운스 감쇠 (0~1 사이로 설정, 1이면 
 glm::vec3 lastBallDirection = glm::vec3(0.0f, 0.0f, 0.0f);  // 공의 마지막 방향 추적
 float shootingPower = 0.0f;  // 슈팅 파워 변수 (0.0 ~ MAX_SHOOTING_POWER 범위)
 bool shootingInProgress = false;  // 슈팅 진행 중 여부 (d 키가 눌린 상태인지)
-const float MAX_SHOOTING_POWER = 20.0f;  // 최대 슈팅 파워
+float MAX_SHOOTING_POWER = 20.0f;  // 최대 슈팅 파워
 const float SHOOTING_INCREMENT = 0.1f;  // 슈팅 파워 
 const float SHOOTING_DECAY = 0.1f;  // 슈팅 파워 감소량 (d 키를 떼었을 때)
 
@@ -262,6 +262,7 @@ GLvoid drawScene() {
 
 bool sprint = 0;
 bool curve = 0;
+bool strong = 0;
 //--- 다시그리기 콜백 함수
 GLvoid Reshape(int w, int h) //--- 콜백 함수: 다시 그리기 콜백 함수
 {
@@ -279,12 +280,6 @@ void Keyboard(unsigned char key, int x, int y) {
 		shootingInProgress = true;
 		break;
 
-	case 'y':
-		cameraPos.y += 0.1f;
-		break;
-	case 'Y':
-		cameraPos.y -= 0.1f;
-		break;
 	case 'r':
 		//cameraPos = glm::vec3(0.0f, 0.0f, 0.0f);
 		//cameraDirection = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -298,6 +293,10 @@ void Keyboard(unsigned char key, int x, int y) {
 	case 'z':
 	case 'Z':
 		curve = 1;
+		break;
+	case 'c':
+	case 'C':
+		strong = 1;
 		break;
 	case 'q':
 		glutLeaveMainLoop();
@@ -314,7 +313,10 @@ void KeyboardUp(unsigned char key, int x, int y) {
 		if (shootingInProgress) {
 			if (ballPos.y == 0.0f) {  // 공이 바닥에 있을 때만 발사
 				ballVelocity = glm::normalize(ballVelocity) * shootingPower;  // 슈팅 파워 적용
-				ballVelocity.y = shootingPower / 2.0f;  // 살짝 위로 튕기게 할 수도 있음
+				if (strong)
+					ballVelocity.y = shootingPower / 3.0f;  // 살짝 위로 튕기게 할 수도 있음
+				else
+					ballVelocity.y = shootingPower / 2.0f;  // 살짝 위로 튕기게 할 수도 있음
 			}
 			shootingPower = 0.0f;  // 슈팅 파워 초기화
 			shootingInProgress = false;  // 슈팅 진행 중 상태 초기화
@@ -328,6 +330,10 @@ void KeyboardUp(unsigned char key, int x, int y) {
 	case 'z':
 	case 'Z':
 		curve = 0;
+		break;
+	case 'c':
+	case 'C':
+		strong = 0;
 		break;
 	case 'q':
 		glutLeaveMainLoop();
@@ -613,6 +619,7 @@ void drawPlayer(glm::vec3 ballPos) {
 float rotationAngle = 0.0f;  // 회전 각도 (라디안)
 float rotationSpeed = 5.0f;  // 회전 속도 (단위: 라디안/초)
 glm::vec3 rotationDirection = glm::vec3(0.0f, 0.0f, 0.0f);
+
 void MoveBall(glm::vec3 playerPos, glm::vec3 keeperPos) {
 	const float maxDistance = 0.2f;
 	glm::vec3 distanceVec = playerPos - ballPos;
@@ -622,10 +629,13 @@ void MoveBall(glm::vec3 playerPos, glm::vec3 keeperPos) {
 	if (player_has_ball) {
 		ballAcceleration.x = 0;
 		ballAcceleration.z = 0;
-
+		
 		if (shootingInProgress && distance <= 1.5f) {
-			shootingPower += SHOOTING_INCREMENT;
-			if (shootingPower > MAX_SHOOTING_POWER) {
+			if (strong)
+				shootingPower = 30.f;
+			else
+				shootingPower += SHOOTING_INCREMENT;
+			if (!strong && shootingPower > MAX_SHOOTING_POWER) {
 				shootingPower = MAX_SHOOTING_POWER;
 			}
 		}
