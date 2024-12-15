@@ -678,7 +678,55 @@ void MoveBall(glm::vec3 playerPos, glm::vec3 keeperPos) {
 
 	// 공의 속도 업데이트
 	ballVelocity += ballAcceleration;
+	// 골대의 각 부품 좌표 및 크기
+	glm::vec3 goalBarPos = glm::vec3(0.0f, 2.0f, -30.0f);
+	glm::vec3 goalBarScale = glm::vec3(2.0f, 0.05f, 1.0f);
+	glm::vec3 leftPostPos = glm::vec3(-2.0f, 1.0f, -30.0f);
+	glm::vec3 leftPostScale = glm::vec3(0.05f, 1.0f, 1.0f);
+	glm::vec3 rightPostPos = glm::vec3(2.0f, 1.0f, -30.0f);
+	glm::vec3 rightPostScale = glm::vec3(0.05f, 1.0f, 1.0f);
+	glm::vec3 bottomBarPos = glm::vec3(0.0f, 1.0f, -31.0f);
+	glm::vec3 bottomBarScale = glm::vec3(2.0f, 1.0f, 0.05f);
 
+	glm::vec3 startPos = ballPos;
+	glm::vec3 endPos = ballPos + ballVelocity; // 공의 이동 방향
+
+	// **골키퍼와의 충돌 처리**
+	glm::vec3 keeperSize = glm::vec3(0.5f, 0.7f, 0.5f);  // 골키퍼 몸통 크기 설정
+	//std::cout << keeperPos.x - keeperSize.x << std::endl;
+	// 충돌 체크: 공과 골키퍼가 충돌했는지 검사
+	if (ballPos.x > keeperPos.x - keeperSize.x && ballPos.x < keeperPos.x + keeperSize.x &&
+		ballPos.z > keeperPos.z - keeperSize.z && ballPos.z < keeperPos.z + keeperSize.z &&
+		ballPos.y > keeperPos.y - keeperSize.y && ballPos.y < keeperPos.y + keeperSize.y) {
+		// 공이 골키퍼 몸통과 충돌했다면
+		std::cout << "골키퍼와 충돌!" << std::endl;
+
+		// 공의 속도를 반사 (골키퍼가 막았다고 가정)
+		//ballVelocity = -ballVelocity * BALL_BOUNCE_DAMPING;
+
+		// 공이 골키퍼에 맞고 방향이 바뀐 후 속도 감소
+		//ballVelocity *= 0.5f; // 속도를 감소시킬 수도 있음 (원하는 효과에 맞게 조정)
+		ballVelocity *= 0.0f;
+	}
+
+	// 골대와의 충돌 처리
+	if (
+		(checkSegmentCollision(startPos, endPos, rightPostPos, rightPostScale) && ballPos.z <= -28) ||
+		(checkSegmentCollision(startPos, endPos, leftPostPos, leftPostScale) && ballPos.z <= -28) ||
+		(checkSegmentCollision(startPos, endPos, goalBarPos, goalBarScale) && ballPos.z <= -30) ||
+		(checkSegmentCollision(startPos, endPos, bottomBarPos, bottomBarScale) && ballPos.z <= -30)
+		)
+	{
+		// 충돌 처리
+		ballVelocity = -ballVelocity * BALL_BOUNCE_DAMPING;
+		std::cout << "충돌 골대" << std::endl;
+
+		// 골대에 들어감
+		if (checkSegmentCollision(startPos, endPos, bottomBarPos, bottomBarScale) && ballPos.z <= -30) {
+			std::cout << "골" << std::endl;
+			ballVelocity = glm::vec3(0.0f, 0.0f, 0.0f);
+		}
+	}
 	// 중력 적용
 	ballVelocity.y += GRAVITY;
 
