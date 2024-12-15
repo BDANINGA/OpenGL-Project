@@ -2,15 +2,19 @@
 in vec4 FragPos;
 in vec3 Normal;
 in vec3 ObjectColor;
+in vec2 TexCoord;
 out vec4 FragColor;
 
 uniform vec3 lightPos;  // Position of the light source
 uniform vec3 viewPos;   // Position of the camera/viewer
 uniform vec3 lightColor;
 uniform float ambientStrength; // Ambient 강도 조절
+uniform sampler2D Texture;
 
 void main()
 {
+vec3 texColor = texture(Texture, TexCoord).rgb;
+
 vec3 ambient = ambientStrength * lightColor;
 
 vec3 normalVector = normalize (Normal);
@@ -25,7 +29,7 @@ float specularLight = max (dot (viewDir, reflectDir), 0.0);
 specularLight = pow(specularLight, shininess);
 vec3 specular = specularLight * lightColor;
 
-vec3 result = (ambient + diffuse + specular) * ObjectColor;
+vec3 result = (ambient + diffuse + specular) * texColor;
 
 FragColor = vec4 (result, 1.0);
 }

@@ -36,4 +36,9 @@
       <Filter>소스 파일</Filter>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="잔디.bmp">
+      <Filter>소스 파일</Filter>
+    </Image>
+  </ItemGroup>
 </Project>
