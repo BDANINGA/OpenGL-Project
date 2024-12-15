@@ -295,7 +295,7 @@ void KeyboardUp(unsigned char key, int x, int y) {
 		if (shootingInProgress) {
 			if (ballPos.y == 0.0f) {  // 공이 바닥에 있을 때만 발사
 				ballVelocity = glm::normalize(ballVelocity) * shootingPower;  // 슈팅 파워 적용
-				ballVelocity.y = shootingPower/2.0f;  // 살짝 위로 튕기게 할 수도 있음
+				ballVelocity.y = shootingPower / 2.0f;  // 살짝 위로 튕기게 할 수도 있음
 			}
 			shootingPower = 0.0f;  // 슈팅 파워 초기화
 			shootingInProgress = false;  // 슈팅 진행 중 상태 초기화
@@ -535,16 +535,16 @@ void MovePlayer(glm::vec3 ballPos) {
 		}
 	}
 	// 회전 처리
-	if (keyStates[GLUT_KEY_LEFT] && playerRotation != glm::radians(90.0f)) {
-		playerRotation = glm::radians(-90.0f); 
+	if (keyStates[GLUT_KEY_LEFT]) {
+		playerRotation = glm::radians(-90.0f);
 	}
-	else if (keyStates[GLUT_KEY_RIGHT] && playerRotation != glm::radians(-90.0f)) {
+	else if (keyStates[GLUT_KEY_RIGHT]) {
 		playerRotation = glm::radians(90.0f);
 	}
-	else if (keyStates[GLUT_KEY_UP] && playerRotation != glm::radians(180.0f)) {
-		playerRotation = glm::radians(180.0f);  
+	else if (keyStates[GLUT_KEY_UP]) {
+		playerRotation = glm::radians(180.0f);
 	}
-	else if (keyStates[GLUT_KEY_DOWN] && playerRotation != glm::radians(0.0f)) {
+	else if (keyStates[GLUT_KEY_DOWN]) {
 		playerRotation = glm::radians(0.0f);
 	}
 	// 가속도를 적용하기 전에 이동 방향이 0이 아닌지 확인
