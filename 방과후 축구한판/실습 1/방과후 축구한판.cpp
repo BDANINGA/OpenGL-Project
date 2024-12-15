@@ -38,6 +38,7 @@ void MakeShape(GLfloat Shape[][3], GLfloat normal[][3], GLfloat x1, GLfloat y1, 
 void MakeColor(GLfloat arr[][3], int first_index, int index_count, GLfloat color[3]);
 void convertToGLArrays(const ObjData& objData, std::vector<GLfloat>& vertexArray, std::vector<GLfloat>& normalArray);
 ObjData parseObj(const std::string& filePath);
+void drawGoal();
 //--- 필요한 변수 선언
 extern GLuint vao, vbo[3];
 extern GLint width, height;
@@ -214,54 +215,7 @@ GLvoid drawScene() {
 
 	drawBall();
 	drawPlayer(ballPos);
-	glm::mat4 Trans = glm::mat4(1.0f);
-	glm::mat4 Scale = glm::mat4(1.0f);
-	glm::mat4 Transform = glm::mat4(1.0f);
-	unsigned int modelLocation = glGetUniformLocation(shaderProgramID, "modelTransform");
-
-	
-	Scale = glm::scale(Scale, glm::vec3(2.0f, 0.05f, 1.0f));
-	Trans = glm::translate(Trans, glm::vec3(0.0f, 2.0f, -30.0f));
-	Transform = Trans * Scale;
-	
-	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(Transform));
-	glDrawArrays(GL_TRIANGLES, firstObjectVertexCount + secondObjectVertexCount, thirdObjectVertexCount[0]);
-
-	Trans = glm::mat4(1.0f);
-	Scale = glm::mat4(1.0f);
-	Transform = glm::mat4(1.0f);
-
-	Scale = glm::scale(Scale, glm::vec3(0.05f, 1.0f, 1.0f));
-	Trans = glm::translate(Trans, glm::vec3(-2.0f, 1.0f, -30.0f));
-	Transform = Trans * Scale;
-
-	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(Transform));
-	glDrawArrays(GL_TRIANGLES, firstObjectVertexCount + secondObjectVertexCount + thirdObjectVertexCount[0], thirdObjectVertexCount[1]);
-
-	Trans = glm::mat4(1.0f);
-	Scale = glm::mat4(1.0f);
-	Transform = glm::mat4(1.0f);
-
-	Scale = glm::scale(Scale, glm::vec3(0.05f, 1.0f, 1.0f));
-	Trans = glm::translate(Trans, glm::vec3(2.0f, 1.0f, -30.0f));
-	Transform = Trans * Scale;
-
-	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(Transform));
-	glDrawArrays(GL_TRIANGLES, firstObjectVertexCount + secondObjectVertexCount + thirdObjectVertexCount[0] + thirdObjectVertexCount[1], thirdObjectVertexCount[2]);
-
-	Trans = glm::mat4(1.0f);
-	Scale = glm::mat4(1.0f);
-	Transform = glm::mat4(1.0f);
-
-	Scale = glm::scale(Scale, glm::vec3(2.0f, 1.0f, 0.05f));
-	Trans = glm::translate(Trans, glm::vec3(0.0f, 1.0f, -31.0f));
-	Transform = Trans * Scale;
-
-	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(Transform));
-	glDrawArrays(GL_TRIANGLES, firstObjectVertexCount + secondObjectVertexCount + thirdObjectVertexCount[0] + thirdObjectVertexCount[1] + thirdObjectVertexCount[2], thirdObjectVertexCount[3]);
-
-	Transform = glm::mat4(1.0f);
-	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(Transform));
+	drawGoal();
 	drawGrass();
 
 
@@ -725,4 +679,53 @@ void drawBall() {
 	glDrawArrays(GL_TRIANGLES, firstObjectVertexCount, secondObjectVertexCount);
 }
 
+void drawGoal() {
+	glm::mat4 Trans = glm::mat4(1.0f);
+	glm::mat4 Scale = glm::mat4(1.0f);
+	glm::mat4 Transform = glm::mat4(1.0f);
+	unsigned int modelLocation = glGetUniformLocation(shaderProgramID, "modelTransform");
 
+
+	Scale = glm::scale(Scale, glm::vec3(2.0f, 0.05f, 1.0f));
+	Trans = glm::translate(Trans, glm::vec3(0.0f, 2.0f, -30.0f));
+	Transform = Trans * Scale;
+
+	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(Transform));
+	glDrawArrays(GL_TRIANGLES, firstObjectVertexCount + secondObjectVertexCount, thirdObjectVertexCount[0]);
+
+	Trans = glm::mat4(1.0f);
+	Scale = glm::mat4(1.0f);
+	Transform = glm::mat4(1.0f);
+
+	Scale = glm::scale(Scale, glm::vec3(0.05f, 1.0f, 1.0f));
+	Trans = glm::translate(Trans, glm::vec3(-2.0f, 1.0f, -30.0f));
+	Transform = Trans * Scale;
+
+	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(Transform));
+	glDrawArrays(GL_TRIANGLES, firstObjectVertexCount + secondObjectVertexCount + thirdObjectVertexCount[0], thirdObjectVertexCount[1]);
+
+	Trans = glm::mat4(1.0f);
+	Scale = glm::mat4(1.0f);
+	Transform = glm::mat4(1.0f);
+
+	Scale = glm::scale(Scale, glm::vec3(0.05f, 1.0f, 1.0f));
+	Trans = glm::translate(Trans, glm::vec3(2.0f, 1.0f, -30.0f));
+	Transform = Trans * Scale;
+
+	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(Transform));
+	glDrawArrays(GL_TRIANGLES, firstObjectVertexCount + secondObjectVertexCount + thirdObjectVertexCount[0] + thirdObjectVertexCount[1], thirdObjectVertexCount[2]);
+
+	Trans = glm::mat4(1.0f);
+	Scale = glm::mat4(1.0f);
+	Transform = glm::mat4(1.0f);
+
+	Scale = glm::scale(Scale, glm::vec3(2.0f, 1.0f, 0.05f));
+	Trans = glm::translate(Trans, glm::vec3(0.0f, 1.0f, -31.0f));
+	Transform = Trans * Scale;
+
+	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(Transform));
+	glDrawArrays(GL_TRIANGLES, firstObjectVertexCount + secondObjectVertexCount + thirdObjectVertexCount[0] + thirdObjectVertexCount[1] + thirdObjectVertexCount[2], thirdObjectVertexCount[3]);
+
+	Transform = glm::mat4(1.0f);
+	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(Transform));
+}
