@@ -59,7 +59,7 @@ glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 4.0f);
 glm::vec3 cameraDirection = glm::vec3(0.0f, 0.0f, 0.0f);
 glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 glm::vec3 light = glm::vec3(1.0f, 1.0f, 1.0f);
-glm::vec3 lightp = glm::vec3(0.0f, 100.0f, 100.0f);
+glm::vec3 lightp = glm::vec3(50.0f, 0.0f, 50.0f);
 //-----------------------------------------------------------------------
 // 241207
 void MoveBall(glm::vec3 playerPos);
@@ -247,12 +247,14 @@ GLvoid drawScene() {
 	glUniformMatrix4fv(projectionLocation, 1, GL_FALSE, &projection[0][0]);
 
 	// 조명
+	unsigned int ambientStrength = glGetUniformLocation(shaderProgramID, "ambientStrength");
+	glUniform1f(ambientStrength, 0.7f);
 	unsigned int lightPosLocation = glGetUniformLocation(shaderProgramID, "lightPos");
 	glUniform3f(lightPosLocation, lightp.x, lightp.y, lightp.z);
 	unsigned int lightColorLocation = glGetUniformLocation(shaderProgramID, "lightColor");
 	glUniform3f(lightColorLocation, light.x, light.y, light.z);
 	unsigned int viewPosLocation = glGetUniformLocation(shaderProgramID, "viewPos");
-	glUniform3f(viewPosLocation, 0.0f, -50.0f, -50.0f);
+	glUniform3f(viewPosLocation, -50.0f, 0.0f, -50.0f);
 
 	glutSwapBuffers(); // 화면에 출력하기
 }
@@ -733,10 +735,10 @@ void drawGrass() {
 
 	GLfloat grassNormal[] = {
 		// x, y, z
-		-50.0f, -0.3f, -50.0f,  // 왼쪽 하단
-		50.0f, -0.3f, -50.0f,   // 오른쪽 하단
-		50.0f, -0.3f, 50.0f,    // 오른쪽 상단
-		-50.0f, -0.3f, 50.0f    // 왼쪽 상단
+		0.0f, 1.0f, 0.0f,  // 왼쪽 하단
+		0.0f, 1.0f, 0.0f,  // 오른쪽 하단
+		0.0f, 1.0f, 0.0f,  // 오른쪽 상단
+		0.0f, 1.0f, 0.0f   // 왼쪽 상단
 	};
 
 	GLfloat grassTexture[] = {
