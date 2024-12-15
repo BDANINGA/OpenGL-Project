@@ -140,7 +140,7 @@ GLfloat skycolor[3] = { 0.0f, 1.0f, 1.0f };
 GLfloat yellowcolor[3] = { 1.0f, 1.0f, 0.0f };
 GLfloat Long{ 2.0f };
 
-int firstObjectVertexCount{}, secondObjectVertexCount{};
+int firstObjectVertexCount{}, secondObjectVertexCount{}, thirdObjectVertexCount[4]{};
 //cube 36
 //pyramid 16
 //cone 1263
@@ -166,6 +166,21 @@ GLvoid drawScene() {
 		std::cout << "ball 완료" << std::endl;
 		std::cout << "vertexcount - " << secondObjectVertexCount << std::endl;
 
+		data = parseObj("cube.obj");
+		convertToGLArrays(data, vertexArray, normalArray);
+		thirdObjectVertexCount[0] = vertexArray.size() / 3 - (firstObjectVertexCount + secondObjectVertexCount);
+		data = parseObj("cube.obj");
+		convertToGLArrays(data, vertexArray, normalArray);
+		thirdObjectVertexCount[1] = vertexArray.size() / 3 - (firstObjectVertexCount + secondObjectVertexCount + thirdObjectVertexCount[0]);
+		data = parseObj("cube.obj");
+		convertToGLArrays(data, vertexArray, normalArray);
+		thirdObjectVertexCount[2] = vertexArray.size() / 3 - (firstObjectVertexCount + secondObjectVertexCount + thirdObjectVertexCount[0] + thirdObjectVertexCount[1]);
+		data = parseObj("cube.obj");
+		convertToGLArrays(data, vertexArray, normalArray);
+		thirdObjectVertexCount[3] = vertexArray.size() / 3 - (firstObjectVertexCount + secondObjectVertexCount + thirdObjectVertexCount[0] + thirdObjectVertexCount[1] + thirdObjectVertexCount[2]);
+
+		std::cout << "골대 완료" << std::endl;
+
 		std::cout << "----- obj 데이터 파싱 완료 -----" << std::endl;
 
 		for (int i = 0; i < firstObjectVertexCount; ++i) {
@@ -174,6 +189,11 @@ GLvoid drawScene() {
 		}
 
 		for (int i = firstObjectVertexCount; i < firstObjectVertexCount + secondObjectVertexCount; ++i) {
+			for (int j = 0; j < 3; ++j)
+				colors[i][j] = 1.0f;
+		}
+
+		for (int i = firstObjectVertexCount + secondObjectVertexCount; i < firstObjectVertexCount + secondObjectVertexCount + thirdObjectVertexCount[0] + thirdObjectVertexCount[1] + thirdObjectVertexCount[2] + thirdObjectVertexCount[3]; ++i) {
 			for (int j = 0; j < 3; ++j)
 				colors[i][j] = 1.0f;
 		}
@@ -194,7 +214,54 @@ GLvoid drawScene() {
 
 	drawBall();
 	drawPlayer(ballPos);
+	glm::mat4 Trans = glm::mat4(1.0f);
+	glm::mat4 Scale = glm::mat4(1.0f);
+	glm::mat4 Transform = glm::mat4(1.0f);
+	unsigned int modelLocation = glGetUniformLocation(shaderProgramID, "modelTransform");
+
 	
+	Scale = glm::scale(Scale, glm::vec3(2.0f, 0.05f, 1.0f));
+	Trans = glm::translate(Trans, glm::vec3(0.0f, 2.0f, -30.0f));
+	Transform = Trans * Scale;
+	
+	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(Transform));
+	glDrawArrays(GL_TRIANGLES, firstObjectVertexCount + secondObjectVertexCount, thirdObjectVertexCount[0]);
+
+	Trans = glm::mat4(1.0f);
+	Scale = glm::mat4(1.0f);
+	Transform = glm::mat4(1.0f);
+
+	Scale = glm::scale(Scale, glm::vec3(0.05f, 1.0f, 1.0f));
+	Trans = glm::translate(Trans, glm::vec3(-2.0f, 1.0f, -30.0f));
+	Transform = Trans * Scale;
+
+	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(Transform));
+	glDrawArrays(GL_TRIANGLES, firstObjectVertexCount + secondObjectVertexCount + thirdObjectVertexCount[0], thirdObjectVertexCount[1]);
+
+	Trans = glm::mat4(1.0f);
+	Scale = glm::mat4(1.0f);
+	Transform = glm::mat4(1.0f);
+
+	Scale = glm::scale(Scale, glm::vec3(0.05f, 1.0f, 1.0f));
+	Trans = glm::translate(Trans, glm::vec3(2.0f, 1.0f, -30.0f));
+	Transform = Trans * Scale;
+
+	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(Transform));
+	glDrawArrays(GL_TRIANGLES, firstObjectVertexCount + secondObjectVertexCount + thirdObjectVertexCount[0] + thirdObjectVertexCount[1], thirdObjectVertexCount[2]);
+
+	Trans = glm::mat4(1.0f);
+	Scale = glm::mat4(1.0f);
+	Transform = glm::mat4(1.0f);
+
+	Scale = glm::scale(Scale, glm::vec3(2.0f, 1.0f, 0.05f));
+	Trans = glm::translate(Trans, glm::vec3(0.0f, 1.0f, -31.0f));
+	Transform = Trans * Scale;
+
+	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(Transform));
+	glDrawArrays(GL_TRIANGLES, firstObjectVertexCount + secondObjectVertexCount + thirdObjectVertexCount[0] + thirdObjectVertexCount[1] + thirdObjectVertexCount[2], thirdObjectVertexCount[3]);
+
+	Transform = glm::mat4(1.0f);
+	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(Transform));
 	drawGrass();
 
 
