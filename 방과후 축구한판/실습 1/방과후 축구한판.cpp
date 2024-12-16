@@ -71,7 +71,7 @@ glm::vec3 lightv = glm::vec3(-30.0f, 0.0f, -50.0f);
 float ambientlight = 0.5f;
 //-----------------------------------------------------------------------
 // 241207
-void MoveBall(glm::vec3 playerPos);
+void MoveBall(glm::vec3& playerPos);
 // 키보드 상태
 bool keyStates[256] = { false };
 
@@ -99,6 +99,7 @@ const float SHOOTING_INCREMENT = 0.1f;  // 슈팅 파워
 const float SHOOTING_DECAY = 0.1f;  // 슈팅 파워 감소량 (d 키를 떼었을 때)
 
 bool player_has_ball = 0;
+bool keeper_has_ball = 0;
 //------------------------------------------------------------------------
 
 void InitBuffer()
@@ -581,7 +582,7 @@ void MovePlayer(glm::vec3 ballPos) {
 	if (ballPos.y <= 2.0f) {
 		float distance = glm::distance(glm::vec2(playerPos.x, playerPos.z), glm::vec2(ballPos.x, ballPos.z));
 
-		if (distance <= 0.75f) {
+		if (distance <= 0.75f && !keeper_has_ball) {
 			//std::cout << "Catch Ball!" << std::endl;
 			if (player_has_ball == 0) {
 				ballVelocity.x = 0.0f;
@@ -600,7 +601,7 @@ float rotationAngle = 0.0f;  // 회전 각도 (라디안)
 float rotationSpeed = 5.0f;  // 회전 속도 (단위: 라디안/초)
 glm::vec3 rotationDirection = glm::vec3(0.0f, 0.0f, 0.0f);
 
-void MoveBall(glm::vec3 playerPos, glm::vec3 keeperPos) {
+void MoveBall(glm::vec3& playerPos, glm::vec3 keeperPos) {
 	const float maxDistance = 0.2f;
 	glm::vec3 distanceVec = playerPos - ballPos;
 	float distance = glm::distance(glm::vec2(playerPos.x, playerPos.z), glm::vec2(ballPos.x, ballPos.z));
@@ -609,7 +610,7 @@ void MoveBall(glm::vec3 playerPos, glm::vec3 keeperPos) {
 	if (player_has_ball) {
 		ballAcceleration.x = 0;
 		ballAcceleration.z = 0;
-		
+		ballAcceleration = glm::vec3{ 0,0,0 };
 		if (shootingInProgress && distance <= 1.5f) {
 			if (strong)
 				shootingPower = 30.f;
@@ -669,13 +670,16 @@ void MoveBall(glm::vec3 playerPos, glm::vec3 keeperPos) {
 	// 공의 속도 업데이트
 	ballVelocity += ballAcceleration;
 	// 골대의 각 부품 좌표 및 크기
-	glm::vec3 goalBarPos = glm::vec3(0.0f, 2.0f, -30.0f);
+	glm::vec3 goalBarPos = glm::vec3(0.0f, 2.0f, -35.0f);
 	glm::vec3 goalBarScale = glm::vec3(2.0f, 0.05f, 1.0f);
-	glm::vec3 leftPostPos = glm::vec3(-2.0f, 1.0f, -30.0f);
+
+	glm::vec3 leftPostPos = glm::vec3(-2.0f, 1.0f, -35.0f);
 	glm::vec3 leftPostScale = glm::vec3(0.05f, 1.0f, 1.0f);
-	glm::vec3 rightPostPos = glm::vec3(2.0f, 1.0f, -30.0f);
+
+	glm::vec3 rightPostPos = glm::vec3(2.0f, 1.0f, -35.0f);
 	glm::vec3 rightPostScale = glm::vec3(0.05f, 1.0f, 1.0f);
-	glm::vec3 bottomBarPos = glm::vec3(0.0f, 1.0f, -31.0f);
+
+	glm::vec3 bottomBarPos = glm::vec3(0.0f, 1.0f, -36.0f);
 	glm::vec3 bottomBarScale = glm::vec3(2.0f, 1.0f, 0.05f);
 
 	glm::vec3 startPos = ballPos;
@@ -690,7 +694,7 @@ void MoveBall(glm::vec3 playerPos, glm::vec3 keeperPos) {
 		ballPos.y > keeperPos.y - keeperSize.y && ballPos.y < keeperPos.y + keeperSize.y) {
 		// 공이 골키퍼 몸통과 충돌했다면
 		std::cout << "골키퍼와 충돌!" << std::endl;
-
+		keeper_has_ball = 1;
 		// 공의 속도를 반사 (골키퍼가 막았다고 가정)
 		//ballVelocity = -ballVelocity * BALL_BOUNCE_DAMPING;
 
@@ -698,13 +702,16 @@ void MoveBall(glm::vec3 playerPos, glm::vec3 keeperPos) {
 		//ballVelocity *= 0.5f; // 속도를 감소시킬 수도 있음 (원하는 효과에 맞게 조정)
 		ballVelocity *= 0.0f;
 	}
-
+	else
+	{
+		keeper_has_ball = 0;
+	}
 	// 골대와의 충돌 처리
 	if (
-		(checkSegmentCollision(startPos, endPos, rightPostPos, rightPostScale) && ballPos.z <= -28) ||
-		(checkSegmentCollision(startPos, endPos, leftPostPos, leftPostScale) && ballPos.z <= -28) ||
-		(checkSegmentCollision(startPos, endPos, goalBarPos, goalBarScale) && ballPos.z <= -30) ||
-		(checkSegmentCollision(startPos, endPos, bottomBarPos, bottomBarScale) && ballPos.z <= -30)
+		(checkSegmentCollision(startPos, endPos, rightPostPos, rightPostScale) && ballPos.z <= -32) ||
+		(checkSegmentCollision(startPos, endPos, leftPostPos, leftPostScale) && ballPos.z <= -32) ||
+		(checkSegmentCollision(startPos, endPos, goalBarPos, goalBarScale) && ballPos.z <= -35) ||
+		(checkSegmentCollision(startPos, endPos, bottomBarPos, bottomBarScale) && ballPos.z <= -35)
 		)
 	{
 		// 충돌 처리
@@ -712,8 +719,10 @@ void MoveBall(glm::vec3 playerPos, glm::vec3 keeperPos) {
 		std::cout << "충돌 골대" << std::endl;
 
 		// 골대에 들어감
-		if (checkSegmentCollision(startPos, endPos, bottomBarPos, bottomBarScale) && ballPos.z <= -30) {
+		if (checkSegmentCollision(startPos, endPos, bottomBarPos, bottomBarScale) && ballPos.z <= -35) {
 			std::cout << "골" << std::endl;
+			ballPos = glm::vec3(0.0f, 0.0f, 0.0f);
+			playerPos = glm::vec3(0.0f, 0.0f, 0.0f);
 			ballVelocity = glm::vec3(0.0f, 0.0f, 0.0f);
 		}
 	}
@@ -738,16 +747,16 @@ void MoveBall(glm::vec3 playerPos, glm::vec3 keeperPos) {
 	}
 
 	// Curve 효과 (Z가 눌렸고, curve 상태일 때만)
-	if (curve && !player_has_ball && distance <= 15) {
-		if (ballPos.x > 0.1f) {
-			ballVelocity.x -= CURVE_TURN_SPEED;
-		}
-		else if (ballPos.x < -0.1f) {
-			ballVelocity.x += CURVE_TURN_SPEED;
-		}
-		if (glm::abs(ballPos.x) < 0.05f) {
-			ballVelocity.x = 0.0f;
-		}
+	if (curve && !player_has_ball && distance <= 10 && ballPos.y > 0) {
+		//if (ballPos.x > 0.1f) {
+		ballVelocity.x -= CURVE_TURN_SPEED;
+		//}
+		//else if (ballPos.x < -0.1f) {
+		//	ballVelocity.x += CURVE_TURN_SPEED;
+		//}
+		//if (glm::abs(ballPos.x) < 0.05f) {
+		//	ballVelocity.x = 0.0f;
+		//}
 	}
 
 	// 공의 위치 업데이트
@@ -757,25 +766,42 @@ void MoveBall(glm::vec3 playerPos, glm::vec3 keeperPos) {
 	if (ballPos.y < 0.0f) {
 		ballPos.y = 0.0f;
 		ballVelocity.y = -ballVelocity.y * BALL_BOUNCE_DAMPING;
+
 	}
 
 	// x와 z 경계에 닿으면 반사 처리
 	if (ballPos.x < -50.0f) {
-		ballPos.x = -50.0f;
-		ballVelocity.x = -ballVelocity.x * BALL_BOUNCE_DAMPING;
+		//ballPos.x = -50.0f;
+		//ballVelocity.x = -ballVelocity.x * BALL_BOUNCE_DAMPING;
+		ballPos = glm::vec3(0.0f, 0.0f, 0.0f);
+		playerPos = glm::vec3(0.0f, 0.0f, 0.0f);
+		ballVelocity = glm::vec3(0.0f, 0.0f, 0.0f);
+		rotationAngle = 0.0f;  // 공이 멈추면 회전도 멈춤
 	}
 	else if (ballPos.x > 50.0f) {
-		ballPos.x = 50.0f;
-		ballVelocity.x = -ballVelocity.x * BALL_BOUNCE_DAMPING;
+		//ballPos.x = 50.0f;
+		//ballVelocity.x = -ballVelocity.x * BALL_BOUNCE_DAMPING;
+		ballPos = glm::vec3(0.0f, 0.0f, 0.0f);
+		playerPos = glm::vec3(0.0f, 0.0f, 0.0f);
+		ballVelocity = glm::vec3(0.0f, 0.0f, 0.0f);
+		rotationAngle = 0.0f;  // 공이 멈추면 회전도 멈춤
 	}
 
 	if (ballPos.z < -50.0f) {
-		ballPos.z = -50.0f;
-		ballVelocity.z = -ballVelocity.z * BALL_BOUNCE_DAMPING;
+		//ballPos.z = -50.0f;
+		//ballVelocity.z = -ballVelocity.z * BALL_BOUNCE_DAMPING;
+		ballPos = glm::vec3(0.0f, 0.0f, 0.0f);
+		playerPos = glm::vec3(0.0f, 0.0f, 0.0f);
+		ballVelocity = glm::vec3(0.0f, 0.0f, 0.0f);
+		rotationAngle = 0.0f;  // 공이 멈추면 회전도 멈춤
 	}
 	else if (ballPos.z > 50.0f) {
-		ballPos.z = 50.0f;
-		ballVelocity.z = -ballVelocity.z * BALL_BOUNCE_DAMPING;
+		//ballPos.z = 50.0f;
+		//ballVelocity.z = -ballVelocity.z * BALL_BOUNCE_DAMPING;
+		ballPos = glm::vec3(0.0f, 0.0f, 0.0f);
+		playerPos = glm::vec3(0.0f, 0.0f, 0.0f);
+		ballVelocity = glm::vec3(0.0f, 0.0f, 0.0f);
+		rotationAngle = 0.0f;  // 공이 멈추면 회전도 멈춤
 	}
 
 	// 회전 각도 업데이트 (공의 진행 방향에 비례)

@@ -11,7 +11,7 @@
 #include <tuple>
 
 void MovePlayer(glm::vec3 ballPos);
-void MoveBall(glm::vec3 playerPos, glm::vec3 keeperPos);
+void MoveBall(glm::vec3& playerPos, glm::vec3 keeperPos);
 void MoveKeeper(glm::vec3 ballPos, glm::vec3& keeperPos);
 void deleteTexture(GLuint textureID);
 GLuint loadBMP(const char* filepath);
@@ -51,7 +51,7 @@ void drawPlayer(glm::vec3 ballPos) {
 
 	// 플레이어 그리기
 	glDrawArrays(GL_TRIANGLES, 0, firstObjectVertexCount);
-	
+
 	deleteTexture(playerTextures);
 }
 
