@@ -46,7 +46,7 @@ void drawGrass();
 void drawPlayer(glm::vec3 ballPos);
 void drawBall(glm::vec3 keeperPos);
 void drawKeeper(glm::vec3 ballPos, glm::vec3& keeperPos);
-void drawBackground();
+void drawBackground(int i);
 
 //--- 필요한 변수 선언
 extern GLuint vao, vbo[4];
@@ -237,7 +237,8 @@ GLvoid drawScene() {
 	drawPlayer(ballPos);
 	drawGoal();
 	drawGrass();
-	drawBackground();
+	for (int i = 0; i < 3; ++i)
+		drawBackground(i);
 
 	// 뷰잉 변환
 	glm::mat4 view = glm::mat4(1.0f);
