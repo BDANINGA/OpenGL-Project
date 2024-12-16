@@ -78,7 +78,7 @@ bool keyStates[256] = { false };
 // 위치 이동
 glm::vec3 playerPos = glm::vec3(0.0f, 0.0f, 0.0f);  // 객체 위치
 glm::vec3 ballPos = glm::vec3(0.0f, 0.0f, 0.0f);  // 두 번째 객체 위치
-glm::vec3 keeperPos = glm::vec3(0.0f, 0.0f, -27.0f); // 골키퍼 좌표
+glm::vec3 keeperPos = glm::vec3(0.0f, 0.0f, -32.0f); // 골키퍼 좌표
 // 공의 속도 및 가속도 변수 추가
 glm::vec3 ballVelocity = glm::vec3(0.0f, 0.0f, 0.0f);  // 공의 속도
 glm::vec3 ballAcceleration = glm::vec3(0.0f, 0.0f, 0.0f); // 공의 가속도
