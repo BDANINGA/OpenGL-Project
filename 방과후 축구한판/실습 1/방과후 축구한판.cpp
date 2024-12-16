@@ -62,9 +62,11 @@ extern GLuint fragmentShader; //--- 프래그먼트 세이더 객체
 
 //사운드
 FMOD::System* ssystem;
-FMOD::Sound* s_bgm, * s_goal;
+FMOD::Sound* s_bgm, * s_goal, * s_touch, * s_shoot;
 FMOD::Channel* c_bgm = 0;
 FMOD::Channel* c_goal = 0;
+FMOD::Channel* c_touch = 0;
+FMOD::Channel* c_shoot = 0;
 
 FMOD_RESULT
 result;
@@ -98,7 +100,7 @@ glm::vec3 ballVelocity = glm::vec3(0.0f, 0.0f, 0.0f);  // 공의 속도
 glm::vec3 ballAcceleration = glm::vec3(0.0f, 0.0f, 0.0f); // 공의 가속도
 
 const float MAX_SPEED = 1.0f; // 공의 최대 속도
-const float ACCELERATION = 0.02f; // 가속도
+float ACCELERATION = 0.003f; // 가속도
 const float FRICTION = 0.98f; // 마찰력 (속도 감소 비율)
 const float DECELERATION = 0.001f; // 가속도 제거 비율
 const float GRAVITY = -0.05f;  // 중력 값, 음수로 설정하여 아래로 떨어지도록
@@ -169,6 +171,9 @@ void InitBuffer()
 	ssystem->init(32, FMOD_INIT_NORMAL, extradriverdata);
 	ssystem->createSound("football.mp3", FMOD_LOOP_NORMAL, 0, &s_bgm);
 	ssystem->createSound("goal.mp3", FMOD_LOOP_OFF, 0, &s_goal);
+	ssystem->createSound("touch.mp3", FMOD_LOOP_OFF, 0, &s_touch);
+	ssystem->createSound("shoot.mp3", FMOD_LOOP_OFF, 0, &s_shoot);
+
 }
 
 int once = 0;
@@ -318,8 +323,8 @@ void Keyboard(unsigned char key, int x, int y) {
 		//cameraDirection = glm::vec3(0.0f, 0.0f, 0.0f);
 		ballPos = playerPos;
 		ballVelocity = glm::vec3(0.0f, 0.0f, 0.0f);
-		c_goal->stop();
-		//ssystem->playSound(s_bgm, 0, false, &s_bgm);
+
+
 
 		break;
 	case 'e':
@@ -350,6 +355,8 @@ void KeyboardUp(unsigned char key, int x, int y) {
 		if (shootingInProgress) {
 			if (ballPos.y == 0.0f) {  // 공이 바닥에 있을 때만 발사
 				ballVelocity = glm::normalize(ballVelocity) * shootingPower;  // 슈팅 파워 적용
+				ssystem->playSound(s_shoot, 0, false, &c_shoot);
+				
 				if (strong)
 					ballVelocity.y = shootingPower / 3.0f;  // 살짝 위로 튕기게 할 수도 있음
 				else
@@ -614,6 +621,7 @@ void MovePlayer(glm::vec3 ballPos) {
 
 		if (distance <= 0.75f && !keeper_has_ball) {
 			//std::cout << "Catch Ball!" << std::endl;
+			//ssystem->playSound(s_touch, 0, false, &c_touch);
 			if (player_has_ball == 0) {
 				ballVelocity.x = 0.0f;
 				ballVelocity.z = 0.0f;
@@ -650,7 +658,11 @@ void MoveBall(glm::vec3& playerPos, glm::vec3 keeperPos) {
 				shootingPower = MAX_SHOOTING_POWER;
 			}
 		}
-
+		
+		if (sprint)
+			ACCELERATION = 0.02f;
+		else
+			ACCELERATION = 0.003f;
 		// 방향키 입력에 따른 공의 가속도
 		if (keyStates[GLUT_KEY_UP] && keyStates[GLUT_KEY_LEFT]) {
 			ballAcceleration.x = -ACCELERATION;
@@ -675,6 +687,7 @@ void MoveBall(glm::vec3& playerPos, glm::vec3 keeperPos) {
 		else if (keyStates[GLUT_KEY_UP]) {
 			ballAcceleration.z = -ACCELERATION;
 			rotationDirection = glm::vec3(-1.0f, 0.0f, 0.0f);  // 시계방향 회전
+			
 		}
 		else if (keyStates[GLUT_KEY_DOWN]) {
 			ballAcceleration.z = ACCELERATION;
@@ -752,6 +765,7 @@ void MoveBall(glm::vec3& playerPos, glm::vec3 keeperPos) {
 		if (checkSegmentCollision(startPos, endPos, bottomBarPos, bottomBarScale) && ballPos.z <= -35) {
 			std::cout << "골" << std::endl;
 			ssystem->playSound(s_goal, 0, false, &c_goal);
+
 			ballPos = glm::vec3(0.0f, 0.0f, 0.0f);
 			playerPos = glm::vec3(0.0f, 0.0f, 0.0f);
 			ballVelocity = glm::vec3(0.0f, 0.0f, 0.0f);
