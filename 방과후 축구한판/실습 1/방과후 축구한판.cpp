@@ -523,10 +523,10 @@ void MovePlayer(glm::vec3 ballPos) {
 		playerRotation = glm::radians(135.0f);
 	}
 	else if (keyStates[GLUT_KEY_DOWN] && keyStates[GLUT_KEY_LEFT]) {
-		playerRotation = glm::radians(45.0f);
+		playerRotation = glm::radians(-45.0f);
 	}
 	else if (keyStates[GLUT_KEY_DOWN] && keyStates[GLUT_KEY_RIGHT]) {
-		playerRotation = glm::radians(-45.0f);
+		playerRotation = glm::radians(45.0f);
 	}
 	// 가속도를 적용하기 전에 이동 방향이 0이 아닌지 확인
 	if (glm::length(moveDirection) > 0.0f) {
