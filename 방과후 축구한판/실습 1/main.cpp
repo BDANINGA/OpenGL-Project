@@ -23,7 +23,7 @@ void SpecialKeys(int key, int x, int y);
 void SpecialKeysUp(int key, int x, int y);
 
 //--- 필요한 변수 선언
-GLuint vao, vbo[3];
+GLuint vao, vbo[4];
 GLint width, height;
 GLuint shaderProgramID; //--- 세이더 프로그램 이름
 GLuint vertexShader; //--- 버텍스 세이더 객체

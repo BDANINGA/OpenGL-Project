@@ -40,10 +40,15 @@ void MakeShape(GLfloat Shape[][3], GLfloat normal[][3], GLfloat x1, GLfloat y1, 
 void MakeColor(GLfloat arr[][3], int first_index, int index_count, GLfloat color[3]);
 void convertToGLArrays(const ObjData& objData, std::vector<GLfloat>& vertexArray, std::vector<GLfloat>& normalArray, std::vector<GLfloat>& texCoordArray);
 ObjData parseObj(const std::string& filePath);
+
 void drawGoal();
-GLuint loadBMP(const char* filepath);
+void drawGrass();
+void drawPlayer(glm::vec3 ballPos);
+void drawBall(glm::vec3 keeperPos);
+void drawKeeper(glm::vec3 ballPos, glm::vec3& keeperPos);
+
 //--- 필요한 변수 선언
-extern GLuint vao, vbo[3];
+extern GLuint vao, vbo[4];
 extern GLint width, height;
 extern GLuint shaderProgramID; //--- 세이더 프로그램 이름
 extern GLuint vertexShader; //--- 버텍스 세이더 객체
@@ -90,10 +95,6 @@ float MAX_SHOOTING_POWER = 20.0f;  // 최대 슈팅 파워
 const float SHOOTING_INCREMENT = 0.1f;  // 슈팅 파워 
 const float SHOOTING_DECAY = 0.1f;  // 슈팅 파워 감소량 (d 키를 떼었을 때)
 
-void drawGrass();
-void drawPlayer(glm::vec3 ballPos);
-void drawBall(glm::vec3 keeperPos);
-void drawKeeper(glm::vec3 ballPos, glm::vec3& keeperPos);
 bool player_has_ball = 0;
 //------------------------------------------------------------------------
 
@@ -102,7 +103,7 @@ void InitBuffer()
 	glGenVertexArrays(1, &vao); //--- VAO 를 지정하고 할당하기
 	glBindVertexArray(vao); //--- VAO를 바인드하기
 
-	glGenBuffers(3, vbo); //--- 2개의 VBO를 지정하고 할당하기
+	glGenBuffers(4, vbo); //--- 4개의 VBO를 지정하고 할당하기
 	//--- 1번째 VBO를 활성화하여 바인드하고, 버텍스 속성 (좌표값)을 저장
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
 	//--- 변수 diamond 에서 버텍스 데이터 값을 버퍼에 복사한다.
@@ -420,11 +421,7 @@ bool checkSegmentCollision(glm::vec3 start, glm::vec3 end, glm::vec3 goalPos, gl
 	return true;
 }
 
-
-
 float playerRotation = 0.0f;  // 초기 값은 0도, z축을 향하도록 설정
-
-
 
 void MovePlayer(glm::vec3 ballPos) {
 	float moveSpeed = 1.0f;  // 플레이어 기본 이동 속도
@@ -591,29 +588,6 @@ void MovePlayer(glm::vec3 ballPos) {
 
 		}
 	}
-}
-void drawPlayer(glm::vec3 ballPos) {
-	MovePlayer(ballPos);
-
-	glm::mat4 Trans = glm::mat4(1.0f);
-	// 플레이어 이동을 위한 위치 업데이트
-	Trans = glm::translate(Trans, playerPos);
-	// 회전 적용
-	Trans = glm::rotate(Trans, playerRotation, glm::vec3(0.0f, 1.0f, 0.0f));  // 회전 적용
-
-	unsigned int modelLocation = glGetUniformLocation(shaderProgramID, "modelTransform");
-	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(Trans));
-
-	GLuint ballTextures = loadBMP("플레이어 색.bmp");
-	glActiveTexture(GL_TEXTURE0);      // 텍스처 생성
-	glBindTexture(GL_TEXTURE_2D, ballTextures); // 텍스처 ID 사용
-
-	// 셰이더에 텍스처 유닛 0을 연결
-	GLuint texLocation = glGetUniformLocation(shaderProgramID, "Texture");
-	glUniform1i(texLocation, 0);  // 유닛 0을 grassTexture에 연결
-
-	// 플레이어 그리기
-	glDrawArrays(GL_TRIANGLES, 0, firstObjectVertexCount);
 }
 
 // 공의 회전 각도와 회전 속도 변수 추가
@@ -803,40 +777,6 @@ void MoveBall(glm::vec3 playerPos, glm::vec3 keeperPos) {
 	rotationAngle += glm::length(ballVelocity) * rotationSpeed;
 }
 
-void drawBall(glm::vec3 keeperPos) {
-	MoveBall(playerPos, keeperPos);
-
-	glm::mat4 T = glm::mat4(1.0f);
-	glm::mat4 S = glm::mat4(1.0f);
-	glm::mat4 R = glm::mat4(1.0f);  // 회전 행렬
-	glm::mat4 Trans = glm::mat4(1.0f);
-
-	// 회전 적용 (회전 각도 누적 적용)
-	R = glm::rotate(R, rotationAngle, rotationDirection);  // 방향에 따라 회전
-
-	// 두 번째 객체(공) 이동을 위한 위치 업데이트
-	T = glm::translate(T, ballPos);  // 두 번째 객체의 위치 적용
-	S = glm::scale(S, glm::vec3(0.01f, 0.01f, 0.01f));  // 크기 조정
-	Trans = T * R * S; // 위치, 회전, 크기 순서로 적용
-
-	unsigned int modelLocation = glGetUniformLocation(shaderProgramID, "modelTransform");
-	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(Trans));
-
-	GLuint ballTextures = loadBMP("축구공.bmp");
-	glActiveTexture(GL_TEXTURE0);      // 텍스처 생성
-	glBindTexture(GL_TEXTURE_2D, ballTextures); // 텍스처 ID 사용
-
-	// 셰이더에 텍스처 유닛 0을 연결
-	GLuint texLocation = glGetUniformLocation(shaderProgramID, "Texture");
-	glUniform1i(texLocation, 0);  // 유닛 0을 grassTexture에 연결
-
-	// 두 번째 객체(공) 그리기
-	glDrawArrays(GL_TRIANGLES, firstObjectVertexCount, secondObjectVertexCount);
-}
-
-
-
-
 void MoveKeeper(glm::vec3 ballPos, glm::vec3& keeperPos) {
 	// 골키퍼의 이동 범위 설정
 	float minX = -3.0f;
@@ -857,212 +797,4 @@ void MoveKeeper(glm::vec3 ballPos, glm::vec3& keeperPos) {
 	keeperPos.x = glm::mix(keeperPos.x, targetX, keeperSpeed);
 	if (ballPos.z - keeperPos.z <= 5)
 		keeperPos.y = glm::mix(keeperPos.y, targetY, keeperSpeed);
-}
-void drawKeeper(glm::vec3 ballPos, glm::vec3& keeperPos) {
-	MoveKeeper(ballPos, keeperPos);
-	glm::mat4 Trans = glm::mat4(1.0f);
-	// 플레이어 이동을 위한 위치 업데이트
-	Trans = glm::translate(Trans, keeperPos);
-	// 회전 적용
-	//Trans = glm::rotate(Trans, playerRotation, glm::vec3(0.0f, 1.0f, 0.0f));  // 회전 적용
-
-	unsigned int modelLocation = glGetUniformLocation(shaderProgramID, "modelTransform");
-	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(Trans));
-
-	GLuint ballTextures = loadBMP("플레이어 색.bmp");
-	glActiveTexture(GL_TEXTURE0);      // 텍스처 생성
-	glBindTexture(GL_TEXTURE_2D, ballTextures); // 텍스처 ID 사용
-
-	// 셰이더에 텍스처 유닛 0을 연결
-	GLuint texLocation = glGetUniformLocation(shaderProgramID, "Texture");
-	glUniform1i(texLocation, 0);  // 유닛 0을 grassTexture에 연결
-
-	// 플레이어 그리기
-	glDrawArrays(GL_TRIANGLES, 0, firstObjectVertexCount);
-}
-
-void drawGoal() {
-	glm::mat4 Trans = glm::mat4(1.0f);
-	glm::mat4 Scale = glm::mat4(1.0f);
-	glm::mat4 Transform = glm::mat4(1.0f);
-	unsigned int modelLocation = glGetUniformLocation(shaderProgramID, "modelTransform");
-
-
-	Scale = glm::scale(Scale, glm::vec3(2.0f, 0.05f, 1.0f));
-	Trans = glm::translate(Trans, glm::vec3(0.0f, 2.0f, -30.0f));
-	Transform = Trans * Scale;
-
-	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(Transform));
-
-	GLuint ballTextures = loadBMP("골대 색.bmp");
-	glActiveTexture(GL_TEXTURE0);      // 텍스처 생성
-	glBindTexture(GL_TEXTURE_2D, ballTextures); // 텍스처 ID 사용
-
-	// 셰이더에 텍스처 유닛 0을 연결
-	GLuint texLocation = glGetUniformLocation(shaderProgramID, "Texture");
-	glUniform1i(texLocation, 0);  // 유닛 0을 grassTexture에 연결
-
-	glDrawArrays(GL_TRIANGLES, firstObjectVertexCount + secondObjectVertexCount, thirdObjectVertexCount[0]);
-
-	Trans = glm::mat4(1.0f);
-	Scale = glm::mat4(1.0f);
-	Transform = glm::mat4(1.0f);
-
-	Scale = glm::scale(Scale, glm::vec3(0.05f, 1.0f, 1.0f));
-	Trans = glm::translate(Trans, glm::vec3(-2.0f, 1.0f, -30.0f));
-	Transform = Trans * Scale;
-
-	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(Transform));
-	glDrawArrays(GL_TRIANGLES, firstObjectVertexCount + secondObjectVertexCount + thirdObjectVertexCount[0], thirdObjectVertexCount[1]);
-
-	Trans = glm::mat4(1.0f);
-	Scale = glm::mat4(1.0f);
-	Transform = glm::mat4(1.0f);
-
-	Scale = glm::scale(Scale, glm::vec3(0.05f, 1.0f, 1.0f));
-	Trans = glm::translate(Trans, glm::vec3(2.0f, 1.0f, -30.0f));
-	Transform = Trans * Scale;
-
-	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(Transform));
-	glDrawArrays(GL_TRIANGLES, firstObjectVertexCount + secondObjectVertexCount + thirdObjectVertexCount[0] + thirdObjectVertexCount[1], thirdObjectVertexCount[2]);
-
-	Trans = glm::mat4(1.0f);
-	Scale = glm::mat4(1.0f);
-	Transform = glm::mat4(1.0f);
-
-	Scale = glm::scale(Scale, glm::vec3(2.0f, 1.0f, 0.05f));
-	Trans = glm::translate(Trans, glm::vec3(0.0f, 1.0f, -31.0f));
-	Transform = Trans * Scale;
-
-	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(Transform));
-	glDrawArrays(GL_TRIANGLES, firstObjectVertexCount + secondObjectVertexCount + thirdObjectVertexCount[0] + thirdObjectVertexCount[1] + thirdObjectVertexCount[2], thirdObjectVertexCount[3]);
-
-	Transform = glm::mat4(1.0f);
-	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(Transform));
-}
-void drawGrass() {
-	// xz 평면의 범위를 넓혀서 그리기
-	GLfloat grassVertices[] = {
-		// x, y, z
-		-50.0f, -0.3f, -50.0f,  // 왼쪽 하단
-		50.0f, -0.3f, -50.0f,   // 오른쪽 하단
-		50.0f, -0.3f, 50.0f,    // 오른쪽 상단
-		-50.0f, -0.3f, 50.0f    // 왼쪽 상단
-	};
-
-	GLfloat grassColor[] = {
-		0.0f, 1.0f, 0.0f,  // 초록색
-		0.0f, 1.0f, 0.0f,  // 초록색
-		0.0f, 1.0f, 0.0f,  // 초록색
-		0.0f, 1.0f, 0.0f   // 초록색
-	};
-
-	GLfloat grassNormal[] = {
-		// x, y, z
-		0.0f, 1.0f, 0.0f,  // 왼쪽 하단
-		0.0f, 1.0f, 0.0f,  // 오른쪽 하단
-		0.0f, 1.0f, 0.0f,  // 오른쪽 상단
-		0.0f, 1.0f, 0.0f   // 왼쪽 상단
-	};
-
-	GLfloat grassTexture[] = {
-		// x, y, z
-		0.0f, 0.0f,  // 왼쪽 하단
-		50.0f, 0.0f,   // 오른쪽 하단
-		50.0f, 50.0f,    // 오른쪽 상단
-		0.0f, 50.0f    // 왼쪽 상단
-	};
-
-	GLuint vao_grass, vbo_grass[4];
-
-	glGenVertexArrays(1, &vao_grass); // VAO 생성
-	glBindVertexArray(vao_grass); // VAO 바인드
-
-	glGenBuffers(4, vbo_grass); // VBO 4개 생성
-
-	// 1번째 VBO: Grass vertices (좌표)
-	glBindBuffer(GL_ARRAY_BUFFER, vbo_grass[0]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(grassVertices), grassVertices, GL_STATIC_DRAW);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-	glEnableVertexAttribArray(0);
-
-	// 2번째 VBO: Grass color (색상)
-	glBindBuffer(GL_ARRAY_BUFFER, vbo_grass[1]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(grassColor), grassColor, GL_STATIC_DRAW);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
-	glEnableVertexAttribArray(1);
-
-	// 3번째 VBO: Grass color (색상)
-	glBindBuffer(GL_ARRAY_BUFFER, vbo_grass[2]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(grassNormal), grassNormal, GL_STATIC_DRAW);
-	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, 0);
-	glEnableVertexAttribArray(2);
-
-	// 4번째 VBO: Grass color (색상)
-	glBindBuffer(GL_ARRAY_BUFFER, vbo_grass[3]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(grassTexture), grassTexture, GL_STATIC_DRAW);
-	glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, 0, 0);
-	glEnableVertexAttribArray(3);
-
-
-
-	GLuint grassTextures = loadBMP("잔디.bmp");
-	glActiveTexture(GL_TEXTURE0);      // 텍스처 생성
-	glBindTexture(GL_TEXTURE_2D, grassTextures); // 텍스처 ID 사용
-
-	// 셰이더에 텍스처 유닛 0을 연결
-	GLuint texLocation = glGetUniformLocation(shaderProgramID, "Texture");
-	glUniform1i(texLocation, 0);  // 유닛 0을 grassTexture에 연결
-
-	// glDrawArrays를 이용하여 xz 평면을 그린다
-	glDrawArrays(GL_QUADS, 0, 4); // 4개의 정점으로 사각형 그리기
-
-	glBindVertexArray(0); // VAO 바인딩 해제
-}
-GLuint loadBMP(const char* filepath) {
-	FILE* file = fopen(filepath, "rb");
-	if (!file) {
-		std::cout << "Failed to open BMP file: " << filepath << std::endl;
-		return 0;
-	}
-
-	unsigned char header[54];
-	fread(header, sizeof(unsigned char), 54, file); // BMP 헤더 읽기
-
-	// BMP 파일 검증
-	if (header[0] != 'B' || header[1] != 'M') {
-		std::cout << "Not a valid BMP file!" << std::endl;
-		fclose(file);
-		return 0;
-	}
-
-	// 이미지 크기 정보 추출
-	int width = *(int*)&header[18];
-	int height = *(int*)&header[22];
-	int imageSize = *(int*)&header[34];
-
-	if (imageSize == 0) imageSize = width * height * 3; // 24비트 BMP의 경우
-	unsigned char* data = new unsigned char[imageSize];
-
-	// 이미지 데이터 읽기
-	fread(data, sizeof(unsigned char), imageSize, file);
-	fclose(file);
-
-	// 텍스처 생성
-	GLuint textureID;
-	glGenTextures(1, &textureID);
-	glBindTexture(GL_TEXTURE_2D, textureID);
-
-	// 텍스처 데이터 업로드
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_BGR, GL_UNSIGNED_BYTE, data);
-	glGenerateMipmap(GL_TEXTURE_2D);
-
-	// 텍스처 필터링 설정
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	delete[] data;
-	return textureID;
 }

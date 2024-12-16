@@ -541,3 +541,51 @@ void convertToGLArrays(const ObjData& objData, std::vector<GLfloat>& vertexArray
         }
     }
 }
+
+GLuint loadBMP(const char* filepath) {
+    FILE* file = fopen(filepath, "rb");
+    if (!file) {
+        std::cout << "Failed to open BMP file: " << filepath << std::endl;
+        return 0;
+    }
+
+    unsigned char header[54];
+    fread(header, sizeof(unsigned char), 54, file); // BMP 헤더 읽기
+
+    // BMP 파일 검증
+    if (header[0] != 'B' || header[1] != 'M') {
+        std::cout << "Not a valid BMP file!" << std::endl;
+        fclose(file);
+        return 0;
+    }
+
+    // 이미지 크기 정보 추출
+    int width = *(int*)&header[18];
+    int height = *(int*)&header[22];
+    int imageSize = *(int*)&header[34];
+
+    if (imageSize == 0) imageSize = width * height * 3; // 24비트 BMP의 경우
+    unsigned char* data = new unsigned char[imageSize];
+
+    // 이미지 데이터 읽기
+    fread(data, sizeof(unsigned char), imageSize, file);
+    fclose(file);
+
+    // 텍스처 생성
+    GLuint textureID;
+    glGenTextures(1, &textureID);
+    glBindTexture(GL_TEXTURE_2D, textureID);
+
+    // 텍스처 데이터 업로드
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_BGR, GL_UNSIGNED_BYTE, data);
+    glGenerateMipmap(GL_TEXTURE_2D);
+
+    // 텍스처 필터링 설정
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    delete[] data;
+    return textureID;
+}
