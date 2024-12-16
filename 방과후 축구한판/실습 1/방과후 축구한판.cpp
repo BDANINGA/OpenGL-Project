@@ -580,7 +580,7 @@ void MovePlayer(glm::vec3 ballPos) {
 		float distance = glm::distance(glm::vec2(playerPos.x, playerPos.z), glm::vec2(ballPos.x, ballPos.z));
 
 		if (distance <= 0.75f) {
-			std::cout << "Catch Ball!" << std::endl;
+			//std::cout << "Catch Ball!" << std::endl;
 			if (player_has_ball == 0) {
 				ballVelocity.x = 0.0f;
 				ballVelocity.z = 0.0f;
