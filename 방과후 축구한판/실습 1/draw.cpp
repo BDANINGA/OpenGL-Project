@@ -192,10 +192,10 @@ void drawGrass() {
 
 	GLfloat grassNormal[] = {
 		// x, y, z
-		0.0f, 1.0f, 0.0f,  // 왼쪽 하단
-		0.0f, 1.0f, 0.0f,  // 오른쪽 하단
-		0.0f, 1.0f, 0.0f,  // 오른쪽 상단
-		0.0f, 1.0f, 0.0f   // 왼쪽 상단
+		0.0f, 0.0f, 0.0f,  // 왼쪽 하단
+		0.0f, 0.0f, 0.0f,  // 오른쪽 하단
+		0.0f, 0.0f, 0.0f,  // 오른쪽 상단
+		0.0f, 0.0f, 0.0f   // 왼쪽 상단
 	};
 
 	GLfloat grassTexture[] = {
@@ -256,4 +256,89 @@ void drawGrass() {
 	glDeleteVertexArrays(1, &vao_grass);
 
 	deleteTexture(grassTextures);
+}
+
+void drawBackground() {
+	// xz 평면의 범위를 넓혀서 그리기
+	GLfloat backgroundVertices[] = {
+		// x, y, z
+		-30.0f, -0.3f, -50.0f,  // 왼쪽 하단
+		30.0f, -0.3f, -50.0f,   // 오른쪽 하단
+		30.0f, 30.0f, -50.0f,    // 오른쪽 상단
+		-30.0f, 30.0f, -50.0f    // 왼쪽 상단
+	};
+
+	GLfloat backgroundColor[] = {
+		1.0f, 1.0f, 1.0f,  // 초록색
+		1.0f, 1.0f, 1.0f,  // 초록색
+		1.0f, 1.0f, 1.0f,  // 초록색
+		1.0f, 1.0f, 1.0f   // 초록색
+	};
+
+	GLfloat backgroundNormal[] = {
+		// x, y, z
+		0.0f, 1.0f, 0.0f,  // 왼쪽 하단
+		0.0f, 1.0f, 0.0f,  // 오른쪽 하단
+		0.0f, 1.0f, 0.0f,  // 오른쪽 상단
+		0.0f, 1.0f, 0.0f   // 왼쪽 상단
+	};
+
+	GLfloat backgroundTexture[] = {
+		// x, y, z
+		0.0f, 0.0f,  // 왼쪽 하단
+		1.0f, 0.0f,   // 오른쪽 하단
+		1.0f, 1.0f,    // 오른쪽 상단
+		0.0f, 1.0f    // 왼쪽 상단
+	};
+
+	GLuint vao_background, vbo_background[4];
+
+	glGenVertexArrays(1, &vao_background); // VAO 생성
+	glBindVertexArray(vao_background); // VAO 바인드
+
+	glGenBuffers(4, vbo_background); // VBO 4개 생성
+
+	// 1번째 VBO: Grass vertices (좌표)
+	glBindBuffer(GL_ARRAY_BUFFER, vbo_background[0]);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(backgroundVertices), backgroundVertices, GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(0);
+
+	// 2번째 VBO: Grass color (색상)
+	glBindBuffer(GL_ARRAY_BUFFER, vbo_background[1]);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(backgroundColor), backgroundColor, GL_STATIC_DRAW);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(1);
+
+	// 3번째 VBO: Grass color (색상)
+	glBindBuffer(GL_ARRAY_BUFFER, vbo_background[2]);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(backgroundNormal), backgroundNormal, GL_STATIC_DRAW);
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(2);
+
+	// 4번째 VBO: Grass color (색상)
+	glBindBuffer(GL_ARRAY_BUFFER, vbo_background[3]);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(backgroundTexture), backgroundTexture, GL_STATIC_DRAW);
+	glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(3);
+
+
+
+	GLuint backgroundTextures = loadBMP("배경1.bmp");
+	glActiveTexture(GL_TEXTURE0);      // 텍스처 생성
+	glBindTexture(GL_TEXTURE_2D, backgroundTextures); // 텍스처 ID 사용
+
+	// 셰이더에 텍스처 유닛 0을 연결
+	GLuint texLocation = glGetUniformLocation(shaderProgramID, "Texture");
+	glUniform1i(texLocation, 0);  // 유닛 0을 backgroundTexture에 연결
+
+	// glDrawArrays를 이용하여 xz 평면을 그린다
+	glDrawArrays(GL_QUADS, 0, 4); // 4개의 정점으로 사각형 그리기
+
+	// VAO, VBO 정리
+	glBindVertexArray(0);
+	glDeleteBuffers(4, vbo_background);
+	glDeleteVertexArrays(1, &vao_background);
+
+	deleteTexture(backgroundTextures);
 }

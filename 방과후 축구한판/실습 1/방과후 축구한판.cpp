@@ -46,6 +46,7 @@ void drawGrass();
 void drawPlayer(glm::vec3 ballPos);
 void drawBall(glm::vec3 keeperPos);
 void drawKeeper(glm::vec3 ballPos, glm::vec3& keeperPos);
+void drawBackground();
 
 //--- 필요한 변수 선언
 extern GLuint vao, vbo[4];
@@ -65,8 +66,9 @@ glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 4.0f);
 glm::vec3 cameraDirection = glm::vec3(0.0f, 0.0f, 0.0f);
 glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 glm::vec3 light = glm::vec3(1.0f, 1.0f, 1.0f);
-glm::vec3 lightp = glm::vec3(50.0f, 10.0f, 50.0f);
-glm::vec3 lightv = glm::vec3(-50.0f, 0.0f, -50.0f);
+glm::vec3 lightp = glm::vec3(30.0f, 10.0f, 50.0f);
+glm::vec3 lightv = glm::vec3(-30.0f, 0.0f, -50.0f);
+float ambientlight = 0.5f;
 //-----------------------------------------------------------------------
 // 241207
 void MoveBall(glm::vec3 playerPos);
@@ -235,6 +237,7 @@ GLvoid drawScene() {
 	drawPlayer(ballPos);
 	drawGoal();
 	drawGrass();
+	drawBackground();
 
 	// 뷰잉 변환
 	glm::mat4 view = glm::mat4(1.0f);
@@ -251,7 +254,7 @@ GLvoid drawScene() {
 
 	// 조명
 	unsigned int ambientStrength = glGetUniformLocation(shaderProgramID, "ambientStrength");
-	glUniform1f(ambientStrength, 0.7f);
+	glUniform1f(ambientStrength, ambientlight);
 	unsigned int lightPosLocation = glGetUniformLocation(shaderProgramID, "lightPos");
 	glUniform3f(lightPosLocation, lightp.x, lightp.y, lightp.z);
 	unsigned int lightColorLocation = glGetUniformLocation(shaderProgramID, "lightColor");
