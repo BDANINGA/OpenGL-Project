@@ -604,12 +604,13 @@ void drawPlayer(glm::vec3 ballPos) {
 	unsigned int modelLocation = glGetUniformLocation(shaderProgramID, "modelTransform");
 	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(Trans));
 
-	glActiveTexture(GL_TEXTURE0);  // 텍스쳐 유닛 활성화
-	glBindTexture(GL_TEXTURE_2D, 0); // 텍스쳐를 바인딩하지 않음, 유닛 0에 텍스쳐 없음
+	GLuint ballTextures = loadBMP("플레이어 색.bmp");
+	glActiveTexture(GL_TEXTURE0);      // 텍스처 생성
+	glBindTexture(GL_TEXTURE_2D, ballTextures); // 텍스처 ID 사용
 
-	// 셰이더에 텍스쳐 샘플러를 전달하지 않거나, 텍스쳐 사용을 0으로 설정
+	// 셰이더에 텍스처 유닛 0을 연결
 	GLuint texLocation = glGetUniformLocation(shaderProgramID, "Texture");
-	glUniform1i(texLocation, 0);  // 텍스쳐 샘플러를 -1로 설정 (셰이더에서 해당 텍스쳐를 무시하도록)
+	glUniform1i(texLocation, 0);  // 유닛 0을 grassTexture에 연결
 
 	// 플레이어 그리기
 	glDrawArrays(GL_TRIANGLES, 0, firstObjectVertexCount);
@@ -868,6 +869,14 @@ void drawKeeper(glm::vec3 ballPos, glm::vec3& keeperPos) {
 	unsigned int modelLocation = glGetUniformLocation(shaderProgramID, "modelTransform");
 	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(Trans));
 
+	GLuint ballTextures = loadBMP("플레이어 색.bmp");
+	glActiveTexture(GL_TEXTURE0);      // 텍스처 생성
+	glBindTexture(GL_TEXTURE_2D, ballTextures); // 텍스처 ID 사용
+
+	// 셰이더에 텍스처 유닛 0을 연결
+	GLuint texLocation = glGetUniformLocation(shaderProgramID, "Texture");
+	glUniform1i(texLocation, 0);  // 유닛 0을 grassTexture에 연결
+
 	// 플레이어 그리기
 	glDrawArrays(GL_TRIANGLES, 0, firstObjectVertexCount);
 }
@@ -884,6 +893,15 @@ void drawGoal() {
 	Transform = Trans * Scale;
 
 	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(Transform));
+
+	GLuint ballTextures = loadBMP("골대 색.bmp");
+	glActiveTexture(GL_TEXTURE0);      // 텍스처 생성
+	glBindTexture(GL_TEXTURE_2D, ballTextures); // 텍스처 ID 사용
+
+	// 셰이더에 텍스처 유닛 0을 연결
+	GLuint texLocation = glGetUniformLocation(shaderProgramID, "Texture");
+	glUniform1i(texLocation, 0);  // 유닛 0을 grassTexture에 연결
+
 	glDrawArrays(GL_TRIANGLES, firstObjectVertexCount + secondObjectVertexCount, thirdObjectVertexCount[0]);
 
 	Trans = glm::mat4(1.0f);
