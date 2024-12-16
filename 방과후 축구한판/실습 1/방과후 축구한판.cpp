@@ -12,14 +12,7 @@
 #include <fmod.h>
 #include "fmod.hpp"
 #include "fmod_errors.h"
-FMOD::System* ssystem;
-FMOD::Sound* s_bgm, * s_goal;
-FMOD::Channel* c_bgm = 0;
-FMOD::Channel* c_goal = 0;
 
-FMOD_RESULT
-result;
-void* extradriverdata = 0;
 
 // --- 구조체
 struct VertexNormal {
@@ -67,6 +60,15 @@ extern GLuint shaderProgramID; //--- 세이더 프로그램 이름
 extern GLuint vertexShader; //--- 버텍스 세이더 객체
 extern GLuint fragmentShader; //--- 프래그먼트 세이더 객체
 
+//사운드
+FMOD::System* ssystem;
+FMOD::Sound* s_bgm, * s_goal;
+FMOD::Channel* c_bgm = 0;
+FMOD::Channel* c_goal = 0;
+
+FMOD_RESULT
+result;
+void* extradriverdata = 0;
 //------------------------------------------------------------------------------------------------------
 
 GLfloat colors[400000][3]{};
@@ -159,6 +161,8 @@ void InitBuffer()
 	glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, 0, 0);
 	//--- attribute 인덱스 2번을 사용 가능하게 함.
 	glEnableVertexAttribArray(3);
+
+	// 사운드 생성
 	result = FMOD::System_Create(&ssystem);
 	if (result != FMOD_OK)
 		exit(0);
@@ -190,7 +194,10 @@ GLvoid drawScene() {
 	
 	if (once == 0) {
 		once = 1;
+
+		// 배경 사운드 무한 반복
 		ssystem->playSound(s_bgm, 0, false, &c_bgm);
+
 		std::cout << "----- obj 데이터 파싱 중 -----" << std::endl;
 
 		data = parseObj("player.obj");
