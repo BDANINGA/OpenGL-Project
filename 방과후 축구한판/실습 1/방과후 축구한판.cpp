@@ -9,11 +9,23 @@
 #include <gl/glm/gtc/matrix_transform.hpp>
 #include <vector>
 #include <tuple>
+#include <fmod.h>
+#include "fmod.hpp"
+#include "fmod_errors.h"
+FMOD::System* ssystem;
+FMOD::Sound* s_bgm, * s_goal;
+FMOD::Channel* c_bgm = 0;
+FMOD::Channel* c_goal = 0;
+
+FMOD_RESULT
+result;
+void* extradriverdata = 0;
 
 // --- 구조체
 struct VertexNormal {
 	float x, y, z;     // Vertex coordinates
 	float nx, ny, nz;  // Normal coordinates
+	
 };
 struct Vertex {
 	float x, y, z;
@@ -147,6 +159,12 @@ void InitBuffer()
 	glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, 0, 0);
 	//--- attribute 인덱스 2번을 사용 가능하게 함.
 	glEnableVertexAttribArray(3);
+	result = FMOD::System_Create(&ssystem);
+	if (result != FMOD_OK)
+		exit(0);
+	ssystem->init(32, FMOD_INIT_NORMAL, extradriverdata);
+	ssystem->createSound("football.mp3", FMOD_LOOP_NORMAL, 0, &s_bgm);
+	ssystem->createSound("goal.mp3", FMOD_LOOP_OFF, 0, &s_goal);
 }
 
 int once = 0;
@@ -169,9 +187,10 @@ int firstObjectVertexCount{}, secondObjectVertexCount{}, thirdObjectVertexCount[
 //sphere 1008
 
 GLvoid drawScene() {
+	
 	if (once == 0) {
 		once = 1;
-
+		ssystem->playSound(s_bgm, 0, false, &c_bgm);
 		std::cout << "----- obj 데이터 파싱 중 -----" << std::endl;
 
 		data = parseObj("player.obj");
@@ -292,6 +311,9 @@ void Keyboard(unsigned char key, int x, int y) {
 		//cameraDirection = glm::vec3(0.0f, 0.0f, 0.0f);
 		ballPos = playerPos;
 		ballVelocity = glm::vec3(0.0f, 0.0f, 0.0f);
+		c_goal->stop();
+		//ssystem->playSound(s_bgm, 0, false, &s_bgm);
+
 		break;
 	case 'e':
 	case 'E':
@@ -306,6 +328,7 @@ void Keyboard(unsigned char key, int x, int y) {
 		strong = 1;
 		break;
 	case 'q':
+
 		glutLeaveMainLoop();
 		break;
 	}
@@ -721,6 +744,7 @@ void MoveBall(glm::vec3& playerPos, glm::vec3 keeperPos) {
 		// 골대에 들어감
 		if (checkSegmentCollision(startPos, endPos, bottomBarPos, bottomBarScale) && ballPos.z <= -35) {
 			std::cout << "골" << std::endl;
+			ssystem->playSound(s_goal, 0, false, &c_goal);
 			ballPos = glm::vec3(0.0f, 0.0f, 0.0f);
 			playerPos = glm::vec3(0.0f, 0.0f, 0.0f);
 			ballVelocity = glm::vec3(0.0f, 0.0f, 0.0f);
