@@ -283,7 +283,8 @@ void MakeColor(GLfloat arr[][3], int first_index, int index_count, GLfloat color
             arr[j][2] = color[2];
     }
 }
-void MakeSphere(GLfloat arr[][3], GLfloat normal[][3], GLfloat cx, GLfloat cy, GLfloat cz, GLfloat radius, int first_index) {
+void MakeSphere(GLfloat arr[][3], GLfloat normal[][3], GLfloat cx, GLfloat cy, GLfloat cz, GLfloat radius, int first_index)
+{
     int longitudeSegments = 18;  // 경도 분할 수
     int latitudeSegments = 9;    // 위도 분할 수
     int vertexCount = (latitudeSegments + 1) * (longitudeSegments + 1);

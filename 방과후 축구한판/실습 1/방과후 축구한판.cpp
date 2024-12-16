@@ -65,7 +65,8 @@ glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 4.0f);
 glm::vec3 cameraDirection = glm::vec3(0.0f, 0.0f, 0.0f);
 glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 glm::vec3 light = glm::vec3(1.0f, 1.0f, 1.0f);
-glm::vec3 lightp = glm::vec3(50.0f, 0.0f, 50.0f);
+glm::vec3 lightp = glm::vec3(50.0f, 10.0f, 50.0f);
+glm::vec3 lightv = glm::vec3(-50.0f, 0.0f, -50.0f);
 //-----------------------------------------------------------------------
 // 241207
 void MoveBall(glm::vec3 playerPos);
@@ -256,7 +257,7 @@ GLvoid drawScene() {
 	unsigned int lightColorLocation = glGetUniformLocation(shaderProgramID, "lightColor");
 	glUniform3f(lightColorLocation, light.x, light.y, light.z);
 	unsigned int viewPosLocation = glGetUniformLocation(shaderProgramID, "viewPos");
-	glUniform3f(viewPosLocation, -50.0f, 0.0f, -50.0f);
+	glUniform3f(viewPosLocation, lightv.x, lightv.y, lightv.z);
 
 	glutSwapBuffers(); // 화면에 출력하기
 }
