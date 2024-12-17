@@ -1,5 +1,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 //--- 메인 함수
+#pragma comment(lib,"glew32.lib") 
+#pragma comment(lib,"freeglut.lib") 
 #include <iostream>
 #include <GL/glew.h>
 #include <GL/freeglut.h>
@@ -12,6 +14,7 @@
 #include "fmod.h"
 #include "fmod.hpp"
 #include "fmod_errors.h"
+
 
 
 // --- 구조체

@@ -21,6 +21,7 @@
   <ItemGroup>
     <ClCompile Include="default.txt">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="draw.cpp" />
     <ClCompile Include="main.cpp">
@@ -94,6 +95,10 @@
     <LibraryPath>$(SolutionDir)\core\lib\x64;C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\um\x64;$(LibraryPath)</LibraryPath>
     <IncludePath>$(SolutionDir)\core\inc;$(IncludePath)</IncludePath>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <IncludePath>C:\Users\user\Desktop\2024gctp\방과후 축구한판\core\inc;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\user\Desktop\2024gctp\방과후 축구한판\core\lib\x64;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -151,6 +156,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>fmod_vc.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
