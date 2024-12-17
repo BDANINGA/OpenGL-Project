@@ -325,7 +325,7 @@ void drawBackground(int i) {
 
 
 
-		GLuint backgroundTextures = loadBMP("배경1.bmp");
+		GLuint backgroundTextures = loadBMP("학교사진.bmp");
 		glActiveTexture(GL_TEXTURE0);      // 텍스처 생성
 		glBindTexture(GL_TEXTURE_2D, backgroundTextures); // 텍스처 ID 사용
 
