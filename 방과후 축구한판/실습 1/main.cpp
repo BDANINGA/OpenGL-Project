@@ -6,6 +6,8 @@
 #include <GL/freeglut_ext.h>
 #include <time.h>
 
+
+
 //--- 함수 선언 추가하기
 void make_vertexShaders();
 void make_fragmentShaders();
@@ -49,7 +51,7 @@ void main(int argc, char** argv) //--- 윈도우 출력하고 콜백함수 설정
 	make_vertexShaders(); //--- 버텍스 세이더 만들기
 	make_fragmentShaders(); //--- 프래그먼트 세이더 만들기
 	shaderProgramID = make_shaderProgram(); //--- 세이더 프로그램 만들기
-							
+
 	InitBuffer();
 	glutDisplayFunc(drawScene);
 	glutReshapeFunc(Reshape);
@@ -61,6 +63,7 @@ void main(int argc, char** argv) //--- 윈도우 출력하고 콜백함수 설정
 	glutMotionFunc(Motion);
 	glutMainLoop();
 }
+
 
 void make_vertexShaders()
 {

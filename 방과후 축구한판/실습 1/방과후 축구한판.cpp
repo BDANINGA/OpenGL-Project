@@ -9,11 +9,16 @@
 #include <gl/glm/gtc/matrix_transform.hpp>
 #include <vector>
 #include <tuple>
+#include <fmod.h>
+#include "fmod.hpp"
+#include "fmod_errors.h"
+
 
 // --- 구조체
 struct VertexNormal {
 	float x, y, z;     // Vertex coordinates
 	float nx, ny, nz;  // Normal coordinates
+	
 };
 struct Vertex {
 	float x, y, z;
@@ -55,6 +60,17 @@ extern GLuint shaderProgramID; //--- 세이더 프로그램 이름
 extern GLuint vertexShader; //--- 버텍스 세이더 객체
 extern GLuint fragmentShader; //--- 프래그먼트 세이더 객체
 
+//사운드
+FMOD::System* ssystem;
+FMOD::Sound* s_bgm, * s_goal, * s_touch, * s_shoot;
+FMOD::Channel* c_bgm = 0;
+FMOD::Channel* c_goal = 0;
+FMOD::Channel* c_touch = 0;
+FMOD::Channel* c_shoot = 0;
+
+FMOD_RESULT
+result;
+void* extradriverdata = 0;
 //------------------------------------------------------------------------------------------------------
 
 GLfloat colors[400000][3]{};
@@ -84,7 +100,7 @@ glm::vec3 ballVelocity = glm::vec3(0.0f, 0.0f, 0.0f);  // 공의 속도
 glm::vec3 ballAcceleration = glm::vec3(0.0f, 0.0f, 0.0f); // 공의 가속도
 
 const float MAX_SPEED = 1.0f; // 공의 최대 속도
-const float ACCELERATION = 0.02f; // 가속도
+float ACCELERATION = 0.003f; // 가속도
 const float FRICTION = 0.98f; // 마찰력 (속도 감소 비율)
 const float DECELERATION = 0.001f; // 가속도 제거 비율
 const float GRAVITY = -0.05f;  // 중력 값, 음수로 설정하여 아래로 떨어지도록
@@ -147,6 +163,17 @@ void InitBuffer()
 	glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, 0, 0);
 	//--- attribute 인덱스 2번을 사용 가능하게 함.
 	glEnableVertexAttribArray(3);
+
+	// 사운드 생성
+	result = FMOD::System_Create(&ssystem);
+	if (result != FMOD_OK)
+		exit(0);
+	ssystem->init(32, FMOD_INIT_NORMAL, extradriverdata);
+	ssystem->createSound("football.mp3", FMOD_LOOP_NORMAL, 0, &s_bgm);
+	ssystem->createSound("goal.mp3", FMOD_LOOP_OFF, 0, &s_goal);
+	ssystem->createSound("touch.mp3", FMOD_LOOP_OFF, 0, &s_touch);
+	ssystem->createSound("shoot.mp3", FMOD_LOOP_OFF, 0, &s_shoot);
+
 }
 
 int once = 0;
@@ -169,8 +196,12 @@ int firstObjectVertexCount{}, secondObjectVertexCount{}, thirdObjectVertexCount[
 //sphere 1008
 
 GLvoid drawScene() {
+	
 	if (once == 0) {
 		once = 1;
+
+		// 배경 사운드 무한 반복
+		ssystem->playSound(s_bgm, 0, false, &c_bgm);
 
 		std::cout << "----- obj 데이터 파싱 중 -----" << std::endl;
 
@@ -292,6 +323,9 @@ void Keyboard(unsigned char key, int x, int y) {
 		//cameraDirection = glm::vec3(0.0f, 0.0f, 0.0f);
 		ballPos = playerPos;
 		ballVelocity = glm::vec3(0.0f, 0.0f, 0.0f);
+
+
+
 		break;
 	case 'e':
 	case 'E':
@@ -306,6 +340,7 @@ void Keyboard(unsigned char key, int x, int y) {
 		strong = 1;
 		break;
 	case 'q':
+
 		glutLeaveMainLoop();
 		break;
 	}
@@ -320,6 +355,8 @@ void KeyboardUp(unsigned char key, int x, int y) {
 		if (shootingInProgress) {
 			if (ballPos.y == 0.0f) {  // 공이 바닥에 있을 때만 발사
 				ballVelocity = glm::normalize(ballVelocity) * shootingPower;  // 슈팅 파워 적용
+				ssystem->playSound(s_shoot, 0, false, &c_shoot);
+				
 				if (strong)
 					ballVelocity.y = shootingPower / 3.0f;  // 살짝 위로 튕기게 할 수도 있음
 				else
@@ -584,6 +621,7 @@ void MovePlayer(glm::vec3 ballPos) {
 
 		if (distance <= 0.75f && !keeper_has_ball) {
 			//std::cout << "Catch Ball!" << std::endl;
+			//ssystem->playSound(s_touch, 0, false, &c_touch);
 			if (player_has_ball == 0) {
 				ballVelocity.x = 0.0f;
 				ballVelocity.z = 0.0f;
@@ -620,7 +658,11 @@ void MoveBall(glm::vec3& playerPos, glm::vec3 keeperPos) {
 				shootingPower = MAX_SHOOTING_POWER;
 			}
 		}
-
+		
+		if (sprint)
+			ACCELERATION = 0.02f;
+		else
+			ACCELERATION = 0.003f;
 		// 방향키 입력에 따른 공의 가속도
 		if (keyStates[GLUT_KEY_UP] && keyStates[GLUT_KEY_LEFT]) {
 			ballAcceleration.x = -ACCELERATION;
@@ -645,6 +687,7 @@ void MoveBall(glm::vec3& playerPos, glm::vec3 keeperPos) {
 		else if (keyStates[GLUT_KEY_UP]) {
 			ballAcceleration.z = -ACCELERATION;
 			rotationDirection = glm::vec3(-1.0f, 0.0f, 0.0f);  // 시계방향 회전
+			
 		}
 		else if (keyStates[GLUT_KEY_DOWN]) {
 			ballAcceleration.z = ACCELERATION;
@@ -721,6 +764,8 @@ void MoveBall(glm::vec3& playerPos, glm::vec3 keeperPos) {
 		// 골대에 들어감
 		if (checkSegmentCollision(startPos, endPos, bottomBarPos, bottomBarScale) && ballPos.z <= -35) {
 			std::cout << "골" << std::endl;
+			ssystem->playSound(s_goal, 0, false, &c_goal);
+
 			ballPos = glm::vec3(0.0f, 0.0f, 0.0f);
 			playerPos = glm::vec3(0.0f, 0.0f, 0.0f);
 			ballVelocity = glm::vec3(0.0f, 0.0f, 0.0f);
