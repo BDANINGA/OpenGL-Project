@@ -860,12 +860,22 @@ void MoveKeeper(glm::vec3 ballPos, glm::vec3& keeperPos) {
 	float maxX = 3.0f;
 	float minY = -2.0f;
 	float maxY = 2.0f;
+	float targetX = ballPos.x; // 골키퍼가 따라가야 할 목표 x 위치
+	float targetY = -0.1f;
+	 // 골키퍼가 따라가야 할 목표 x 위치
 	// 공의 위치에 따라 골키퍼를 이동시킴
 	float keeperSpeed = 0.0125f; // 골키퍼의 이동 속도
 	if (!player_has_ball)
+	{
 		keeperSpeed = 0.05f;
-	float targetX = ballPos.x; // 골키퍼가 따라가야 할 목표 x 위치
-	float targetY = ballPos.y; // 골키퍼가 따라가야 할 목표 x 위치
+		targetY = ballPos.y;
+	}
+	
+	else {
+		targetY = -0.1f;
+		minX = -1.0f;
+		maxX = 1.0f;
+	}
 	// 목표 위치를 범위 내로 제한
 	targetX = glm::clamp(targetX, minX, maxX);
 	targetY = glm::clamp(targetY, minY, maxY);
