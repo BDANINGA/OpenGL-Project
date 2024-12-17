@@ -868,7 +868,7 @@ void MoveKeeper(glm::vec3 ballPos, glm::vec3& keeperPos) {
 	if (!player_has_ball)
 	{
 		keeperSpeed = 0.05f;
-		targetY = ballPos.y;
+		//targetY = ballPos.y;
 	}
 	
 	else {

@@ -68,7 +68,7 @@ void drawBall(glm::vec3 keeperPos) {
 
 	// 두 번째 객체(공) 이동을 위한 위치 업데이트
 	T = glm::translate(T, ballPos);  // 두 번째 객체의 위치 적용
-	S = glm::scale(S, glm::vec3(0.01f, 0.01f, 0.01f));  // 크기 조정
+	S = glm::scale(S, glm::vec3(0.015f, 0.015f, 0.015f));  // 크기 조정
 	Trans = T * R * S; // 위치, 회전, 크기 순서로 적용
 
 	unsigned int modelLocation = glGetUniformLocation(shaderProgramID, "modelTransform");
