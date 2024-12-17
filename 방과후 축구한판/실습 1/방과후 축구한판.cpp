@@ -9,7 +9,7 @@
 #include <gl/glm/gtc/matrix_transform.hpp>
 #include <vector>
 #include <tuple>
-#include <fmod.h>
+#include "fmod.h"
 #include "fmod.hpp"
 #include "fmod_errors.h"
 
@@ -663,6 +663,7 @@ void MoveBall(glm::vec3& playerPos, glm::vec3 keeperPos) {
 			ACCELERATION = 0.02f;
 		else
 			ACCELERATION = 0.003f;
+
 		// 방향키 입력에 따른 공의 가속도
 		if (keyStates[GLUT_KEY_UP] && keyStates[GLUT_KEY_LEFT]) {
 			ballAcceleration.x = -ACCELERATION;

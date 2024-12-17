@@ -91,8 +91,8 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LibraryPath>C:\Users\user\Desktop\컴그진짜최종\방과후 축구한판\core\lib\x64;C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\um\x64;$(LibraryPath)</LibraryPath>
-    <IncludePath>C:\Users\user\Desktop\컴그진짜최종\방과후 축구한판\core\inc;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)\core\lib\x64;C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\um\x64;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)\core\inc;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
